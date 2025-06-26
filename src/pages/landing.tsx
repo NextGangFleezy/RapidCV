@@ -17,7 +17,7 @@ import {
   Twitter,
   Linkedin,
   Github
-} from "lucide-react";
+} from "@/lib/icons";
 
 export default function Landing() {
   return (
