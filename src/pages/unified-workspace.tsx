@@ -445,7 +445,10 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
 
 
   const parseResumeText = (text: string): ResumeData => {
+    console.log("📄 PARSING RESUME TEXT - Length:", text.length);
+    
     const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+    console.log("📝 TOTAL LINES:", lines.length);
     
     const result: ResumeData = {
       ...defaultResumeData,
@@ -455,85 +458,130 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     let currentSection = '';
     let lineIndex = 0;
 
-    // Extract personal information from the first few lines
-    if (lines.length > 0) {
-      const firstLine = lines[0];
-      const nameParts = firstLine.split(' ');
-      if (nameParts.length >= 2 && !firstLine.includes('@') && !firstLine.includes('(')) {
-        result.personalInfo.firstName = nameParts[0];
-        result.personalInfo.lastName = nameParts.slice(1).join(' ');
-        lineIndex = 1;
+    // Enhanced name extraction - look for the first line that looks like a name
+    for (let i = 0; i < Math.min(lines.length, 3); i++) {
+      const line = lines[i];
+      const words = line.split(' ').filter(w => w.length > 0);
+      
+      // Check if this looks like a name (2-4 words, no special characters, capitalized)
+      if (words.length >= 2 && words.length <= 4 && 
+          !line.includes('@') && !line.includes('(') && !line.includes('.com') &&
+          words.every(word => /^[A-Za-z]+$/.test(word) && word[0] === word[0].toUpperCase())) {
+        result.personalInfo.firstName = words[0];
+        result.personalInfo.lastName = words.slice(1).join(' ');
+        console.log("👤 EXTRACTED NAME:", result.personalInfo.firstName, result.personalInfo.lastName);
+        lineIndex = i + 1;
+        break;
       }
     }
 
-    // Look for contact info in first 5 lines
-    for (let i = lineIndex; i < Math.min(lines.length, 5); i++) {
-      const line = lines[i].toLowerCase();
+    // Enhanced contact extraction - scan more lines
+    for (let i = 0; i < Math.min(lines.length, 8); i++) {
+      const line = lines[i];
       
-      if (line.includes('@')) {
-        result.personalInfo.email = lines[i].match(/\S+@\S+\.\S+/)?.[0] || '';
+      // Email extraction
+      const emailMatch = line.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+      if (emailMatch) {
+        result.personalInfo.email = emailMatch[1];
+        console.log("📧 EXTRACTED EMAIL:", result.personalInfo.email);
       }
       
-      if (line.match(/\(?\d{3}\)?\s*\d{3}[-.\s]?\d{4}/)) {
-        result.personalInfo.phone = lines[i].match(/\(?\d{3}\)?\s*\d{3}[-.\s]?\d{4}/)?.[0] || '';
+      // Phone extraction
+      const phoneMatch = line.match(/(\(?\d{3}\)?\s*[-.\s]?\d{3}[-.\s]?\d{4})/);
+      if (phoneMatch) {
+        result.personalInfo.phone = phoneMatch[1];
+        console.log("📞 EXTRACTED PHONE:", result.personalInfo.phone);
       }
       
-      if (line.includes('address') || line.includes('location') || 
-          line.match(/\d+\s+\w+\s+(street|st|avenue|ave|road|rd|drive|dr|lane|ln)/i)) {
-        result.personalInfo.location = lines[i];
+      // Location extraction
+      if ((line.toLowerCase().includes('address') || line.toLowerCase().includes('location') || 
+          line.match(/\d+\s+\w+\s+(street|st|avenue|ave|road|rd|drive|dr|lane|ln|city|state)/i)) &&
+          !result.personalInfo.location) {
+        result.personalInfo.location = line;
+        console.log("📍 EXTRACTED LOCATION:", result.personalInfo.location);
       }
     }
 
-    // Parse sections
-    for (let i = 5; i < lines.length; i++) {
-      const line = lines[i].toLowerCase();
+    // Enhanced section parsing
+    let summaryLines = [];
+    let skillsLines = [];
+    let experienceBuffer = [];
+    
+    for (let i = lineIndex; i < lines.length; i++) {
+      const line = lines[i];
+      const lineLower = line.toLowerCase();
       
-      if (line.includes('summary') || line.includes('objective') || line.includes('profile')) {
+      // Section detection
+      if (lineLower.match(/^(summary|objective|profile|about)/)) {
         currentSection = 'summary';
+        console.log("🎯 FOUND SUMMARY SECTION");
         continue;
-      } else if (line.includes('experience') || line.includes('employment') || line.includes('work history')) {
+      } else if (lineLower.match(/^(experience|employment|work|career)/)) {
         currentSection = 'experience';
+        console.log("💼 FOUND EXPERIENCE SECTION");
         continue;
-      } else if (line.includes('education') || line.includes('academic')) {
+      } else if (lineLower.match(/^(education|academic|school)/)) {
         currentSection = 'education';
+        console.log("🎓 FOUND EDUCATION SECTION");
         continue;
-      } else if (line.includes('skills') || line.includes('competencies') || line.includes('technologies')) {
+      } else if (lineLower.match(/^(skills|competencies|technologies|technical)/)) {
         currentSection = 'skills';
-        continue;
-      } else if (line.includes('projects') || line.includes('portfolio')) {
-        currentSection = 'projects';
+        console.log("🛠️ FOUND SKILLS SECTION");
         continue;
       }
 
-      // Process content based on current section
-      if (currentSection === 'summary' && lines[i].length > 20) {
-        result.summary += (result.summary ? ' ' : '') + lines[i];
-      } else if (currentSection === 'skills' && lines[i]) {
-        const skills = lines[i].split(/[,•·|]/);
-        skills.forEach(skill => {
-          const cleanSkill = skill.trim();
-          if (cleanSkill && cleanSkill.length > 1 && !result.skills.includes(cleanSkill)) {
-            result.skills.push(cleanSkill);
-          }
-        });
-      } else if (currentSection === 'experience' && lines[i]) {
-        // Simple experience extraction - look for company/position patterns
-        if (lines[i].length > 10 && !lines[i].includes('•') && !lines[i].includes('-')) {
+      // Content extraction based on section
+      if (currentSection === 'summary' && line.length > 10) {
+        summaryLines.push(line);
+      } else if (currentSection === 'skills' && line.length > 0) {
+        skillsLines.push(line);
+      } else if (currentSection === 'experience' && line.length > 0) {
+        experienceBuffer.push(line);
+      }
+    }
+
+    // Process collected data
+    if (summaryLines.length > 0) {
+      result.summary = summaryLines.join(' ');
+      console.log("📋 EXTRACTED SUMMARY:", result.summary.substring(0, 100));
+    }
+
+    if (skillsLines.length > 0) {
+      const allSkillsText = skillsLines.join(' ');
+      const skills = allSkillsText.split(/[,•·|;\n]/).map(s => s.trim()).filter(s => s.length > 1);
+      const uniqueSkills = [];
+      const seenSkills = new Set();
+      for (const skill of skills) {
+        if (!seenSkills.has(skill)) {
+          seenSkills.add(skill);
+          uniqueSkills.push(skill);
+        }
+      }
+      result.skills = uniqueSkills.slice(0, 20); // Limit to 20
+      console.log("🛠️ EXTRACTED SKILLS:", result.skills);
+    }
+
+    if (experienceBuffer.length > 0) {
+      // Simple experience parsing - group every 2-3 lines as one experience
+      for (let i = 0; i < experienceBuffer.length; i += 3) {
+        if (experienceBuffer[i] && experienceBuffer[i].length > 5) {
           const exp: ExperienceItem = {
-            id: Date.now().toString() + Math.random(),
-            company: lines[i],
-            position: lines[i + 1] || 'Position',
+            id: `exp_${Date.now()}_${i}`,
+            position: experienceBuffer[i] || 'Position',
+            company: experienceBuffer[i + 1] || 'Company',
             startDate: '',
             endDate: '',
             current: false,
-            description: lines[i + 2] || '',
+            description: experienceBuffer[i + 2] || '',
             achievements: []
           };
           result.experience.push(exp);
         }
       }
+      console.log("💼 EXTRACTED EXPERIENCE:", result.experience.length, "entries");
     }
 
+    console.log("✅ PARSING COMPLETE - Result:", result);
     return result;
   };
 
@@ -1380,7 +1428,6 @@ ${name}`;
               </CardHeader>
               <CardContent>
                 <div className="bg-white rounded-lg border shadow-sm min-h-[600px] overflow-hidden">
-                  {console.log("🖼️ PREVIEW RENDER - firstName:", resumeData.personalInfo.firstName, "lastName:", resumeData.personalInfo.lastName)}
                   {/* Header Section */}
                   {resumeData.personalInfo.firstName || resumeData.personalInfo.lastName ? (
                     <div className="bg-blue-600 text-white p-6">
