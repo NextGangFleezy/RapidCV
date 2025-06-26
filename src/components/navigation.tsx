@@ -105,20 +105,14 @@ export default function Navigation({ user, onUserChange }: NavigationProps) {
           {location !== "/" && (
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">
-                <Link href="/builder">
-                  <a className="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                    Resume Builder
-                  </a>
+                <Link href="/builder" className="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                  Resume Builder
                 </Link>
-                <Link href="/cover-letter">
-                  <a className="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                    Cover Letter
-                  </a>
+                <Link href="/cover-letter" className="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                  Cover Letter
                 </Link>
-                <Link href="/job-analyzer">
-                  <a className="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                    Job Analyzer
-                  </a>
+                <Link href="/job-analyzer" className="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                  Job Analyzer
                 </Link>
               </div>
             </div>

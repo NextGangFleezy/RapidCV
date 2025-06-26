@@ -125,8 +125,11 @@ RapidCV is a modern, full-stack resume builder application that enables users to
 3. Static assets served from Vercel CDN
 
 ## Changelog
-- June 25, 2025. Initial setup
+- June 26, 2025: Updated to flat folder structure with centralized dependencies in root package.json
+- June 26, 2025: Fixed DOM nesting issues in navigation component
+- June 25, 2025: Initial setup
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+- **Dependency Management**: Keep all package.json files and dependencies centralized in the root folder
+- **Communication Style**: Simple, everyday language
