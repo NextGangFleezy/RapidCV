@@ -120,20 +120,13 @@ export class MemStorage implements IStorage {
   async createResume(insertResume: InsertResume): Promise<Resume> {
     const id = this.currentResumeId++;
     const now = new Date();
-    const resume: Resume = {
+    const resume = {
+      ...insertResume,
       id,
-      title: insertResume.title,
-      userId: insertResume.userId,
-      personalInfo: insertResume.personalInfo || null,
-      summary: insertResume.summary || null,
-      experience: insertResume.experience || null,
-      education: insertResume.education || null,
-      skills: insertResume.skills || null,
-      projects: insertResume.projects || null,
-      templateId: insertResume.templateId || "modern",
       createdAt: now,
       updatedAt: now,
-    };
+      templateId: insertResume.templateId || "modern",
+    } as Resume;
     this.resumes.set(id, resume);
     return resume;
   }
@@ -167,8 +160,13 @@ export class MemStorage implements IStorage {
   async createCoverLetter(insertCoverLetter: InsertCoverLetter): Promise<CoverLetter> {
     const id = this.currentCoverLetterId++;
     const coverLetter: CoverLetter = {
-      ...insertCoverLetter,
       id,
+      userId: insertCoverLetter.userId,
+      resumeId: insertCoverLetter.resumeId || null,
+      jobTitle: insertCoverLetter.jobTitle,
+      companyName: insertCoverLetter.companyName,
+      jobDescription: insertCoverLetter.jobDescription || null,
+      content: insertCoverLetter.content,
       createdAt: new Date(),
     };
     this.coverLetters.set(id, coverLetter);
@@ -191,8 +189,14 @@ export class MemStorage implements IStorage {
   async createJobAnalysis(insertJobAnalysis: InsertJobAnalysis): Promise<JobAnalysis> {
     const id = this.currentJobAnalysisId++;
     const jobAnalysis: JobAnalysis = {
-      ...insertJobAnalysis,
       id,
+      userId: insertJobAnalysis.userId,
+      resumeId: insertJobAnalysis.resumeId || null,
+      jobDescription: insertJobAnalysis.jobDescription,
+      matchScore: insertJobAnalysis.matchScore || null,
+      strengths: insertJobAnalysis.strengths || null,
+      improvements: insertJobAnalysis.improvements || null,
+      missingSkills: insertJobAnalysis.missingSkills || null,
       createdAt: new Date(),
     };
     this.jobAnalyses.set(id, jobAnalysis);
