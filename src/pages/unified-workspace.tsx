@@ -435,44 +435,47 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     }
   };
 
-  // File text extraction utility
+  // File text extraction utility with PDF support
   const extractTextFromFile = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+    console.log("📄 EXTRACTING TEXT FROM:", file.name, "Type:", file.type, "Size:", file.size);
+    
+    if (file.type === 'text/plain' || file.type === 'text/rtf') {
+      const text = await file.text();
+      console.log("📝 TEXT FILE EXTRACTED - Length:", text.length);
+      return text;
+    }
+    
+    if (file.type === 'application/pdf') {
+      console.log("📄 PDF DETECTED - Using server-side extraction");
       
-      reader.onload = (event) => {
-        const result = event.target?.result;
+      try {
+        // Send PDF to backend for text extraction
+        const formData = new FormData();
+        formData.append('pdf', file);
         
-        if (file.type === 'text/plain' || file.type === 'text/rtf') {
-          resolve(result as string);
-        } else if (file.type === 'application/pdf') {
-          // For PDF files, we'll provide clear instructions for manual extraction
-          // PDF parsing requires specialized libraries that we don't have access to
-          resolve(`PDF file detected: ${file.name}
-
-To extract your resume content for parsing:
-
-1. Open your PDF file
-2. Select all text (Ctrl+A or Cmd+A)
-3. Copy the text (Ctrl+C or Cmd+C)
-4. Paste it in the text area below
-5. Click "Import from Text"
-
-This manual approach ensures accurate text extraction and proper resume parsing.`);
-        } else if (file.type.includes('word') || file.type.includes('officedocument')) {
-          // For Word docs, provide instructions for manual text extraction
-          resolve(`Word document uploaded: ${file.name}\n\nNote: For best results with Word documents, please:\n1. Open your Word document\n2. Select and copy the text content\n3. Paste it in the text area below\n\nThis ensures accurate text extraction and better resume parsing.`);
-        } else {
-          resolve(result as string);
+        const response = await fetch('/api/pdf/extract-text', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          throw new Error(`PDF extraction failed: ${response.statusText}`);
         }
-      };
-      
-      reader.onerror = () => {
-        reject(new Error('Error reading file'));
-      };
-      
-      reader.readAsText(file);
-    });
+        
+        const data = await response.json();
+        console.log("✅ PDF TEXT EXTRACTED - Length:", data.text.length);
+        return data.text;
+      } catch (error) {
+        console.error("❌ PDF EXTRACTION ERROR:", error);
+        throw new Error('Failed to extract text from PDF. Please try copying and pasting the text manually.');
+      }
+    }
+    
+    if (file.type.includes('word') || file.type.includes('officedocument')) {
+      throw new Error('Word document parsing not yet supported. Please copy and paste the text manually.');
+    }
+    
+    throw new Error('Unsupported file format. Please use PDF, TXT files, or copy and paste manually.');
   };
 
 

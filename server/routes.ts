@@ -1,6 +1,21 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
 import { storage } from "./storage";
+
+// Type declaration for pdf-parse
+declare module 'pdf-parse' {
+  interface PDFData {
+    numpages: number;
+    numrender: number;
+    info: any;
+    metadata: any;
+    text: string;
+    version: string;
+  }
+  function pdfParse(buffer: Buffer): Promise<PDFData>;
+  export = pdfParse;
+}
 import { 
   insertUserSchema, 
   insertResumeSchema, 
@@ -9,6 +24,12 @@ import {
 } from "@shared/schema";
 import { generateCoverLetter, analyzeJobMatch, generateResumeSuggestions } from "./services/anthropic";
 import { parseResumeWithAI, optimizeResumeForJob } from "./services/ai-parser";
+
+// Configure multer for file uploads
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Users
@@ -297,6 +318,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Resume optimization error:", error);
       res.status(500).json({ 
         message: "Failed to optimize resume",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // PDF text extraction endpoint
+  app.post("/api/pdf/extract-text", upload.single('pdf'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No PDF file uploaded" });
+      }
+
+      if (req.file.mimetype !== 'application/pdf') {
+        return res.status(400).json({ message: "File must be a PDF" });
+      }
+
+      console.log("📄 EXTRACTING TEXT FROM PDF:", req.file.originalname, "Size:", req.file.size);
+      
+      // Extract text from PDF buffer
+      const pdfParse = (await import('pdf-parse')).default;
+      const pdfData = await pdfParse(req.file.buffer);
+      const extractedText = pdfData.text;
+      
+      console.log("✅ PDF TEXT EXTRACTED - Length:", extractedText.length);
+      
+      if (!extractedText || extractedText.trim().length < 50) {
+        return res.status(400).json({ 
+          message: "Could not extract readable text from PDF. The file may be image-based or corrupted.",
+          text: "" 
+        });
+      }
+
+      res.json({ 
+        text: extractedText,
+        pages: pdfData.numpages,
+        info: pdfData.info
+      });
+    } catch (error: unknown) {
+      console.error("❌ PDF EXTRACTION ERROR:", error);
+      res.status(500).json({ 
+        message: "Failed to extract text from PDF",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
