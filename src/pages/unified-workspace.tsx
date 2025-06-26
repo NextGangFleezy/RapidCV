@@ -1348,111 +1348,129 @@ ${name}`;
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-white rounded-lg border shadow-sm min-h-[600px] overflow-hidden">
-                  {(() => {
-                    const currentTemplate = templates[resumeData.templateId as keyof typeof templates] || templates.modern;
-                    return (
-                      <div>
-                        {resumeData.personalInfo.firstName || resumeData.personalInfo.lastName ? (
-                          <div className={`${currentTemplate.headerBg} ${currentTemplate.headerText} p-6`}>
-                            <h1 className="text-2xl font-bold">
-                              {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}
-                            </h1>
-                            <div className="text-sm mt-2 space-y-1 opacity-90">
-                              {resumeData.personalInfo.email && <div>{resumeData.personalInfo.email}</div>}
-                              {resumeData.personalInfo.phone && <div>{resumeData.personalInfo.phone}</div>}
-                              {resumeData.personalInfo.location && <div>{resumeData.personalInfo.location}</div>}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center text-gray-400 py-8 border-2 border-dashed border-gray-200 rounded-lg m-6">
-                            <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p>Enter your personal information to see live preview</p>
-                            <p className="text-xs mt-2">Start with the Resume Builder tab</p>
-                          </div>
-                        )}
-                        
-                        <div className="p-6 space-y-6">
-                          {resumeData.summary && (
-                            <div>
-                              <h2 className={`text-lg font-semibold mb-2 ${currentTemplate.accentColor}`}>Professional Summary</h2>
-                              <p className="text-sm text-gray-700">{resumeData.summary}</p>
-                            </div>
-                          )}
-
-                          {resumeData.experience.length > 0 && (
-                            <div>
-                              <h2 className={`text-lg font-semibold mb-2 ${currentTemplate.accentColor}`}>Work Experience</h2>
-                              <div className="space-y-3">
-                                {resumeData.experience.map((exp, index) => (
-                                  <div key={exp.id} className={`${currentTemplate.sectionBorder} pl-4`}>
-                                    <h3 className="font-medium">{exp.position}</h3>
-                                    <div className="text-sm text-gray-600">{exp.company}</div>
-                                    {exp.description && (
-                                      <p className="text-sm text-gray-700 mt-1">{exp.description}</p>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {resumeData.skills.length > 0 && (
-                            <div>
-                              <h2 className={`text-lg font-semibold mb-2 ${currentTemplate.accentColor}`}>Skills</h2>
-                              <div className="flex flex-wrap gap-1">
-                                {resumeData.skills.map((skill, index) => (
-                                  <span key={index} className={`${currentTemplate.skillBadge} px-2 py-1 rounded text-xs font-medium`}>
-                                    {skill}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Job Analysis Integration in Preview */}
-                          {analysis && activeTab === 'analyzer' && (
-                            <div className="mt-6 pt-4 border-t">
-                              <h2 className={`text-lg font-semibold mb-2 ${currentTemplate.accentColor}`}>Job Match Analysis</h2>
-                              <div className="bg-gray-50 p-3 rounded">
-                                <div className="flex justify-between items-center mb-2">
-                                  <span className="text-sm font-medium">Match Score</span>
-                                  <span className={`text-lg font-bold ${currentTemplate.accentColor}`}>{analysis.matchScore}%</span>
-                                </div>
-                                {analysis.missingSkills.length > 0 && (
-                                  <div className="mt-2">
-                                    <p className="text-xs text-gray-600 mb-1">Missing Skills:</p>
-                                    <div className="flex flex-wrap gap-1">
-                                      {analysis.missingSkills.slice(0, 4).map((skill, index) => (
-                                        <span key={index} className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">
-                                          {skill}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Cover Letter Preview */}
-                          {coverLetterData.content && activeTab === 'cover-letter' && (
-                            <div className="mt-6 pt-4 border-t">
-                              <h2 className={`text-lg font-semibold mb-2 ${currentTemplate.accentColor}`}>Cover Letter Preview</h2>
-                              <div className="bg-gray-50 p-3 rounded text-xs text-gray-700 whitespace-pre-wrap max-h-40 overflow-y-auto">
-                                {coverLetterData.content.substring(0, 300)}...
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
+                <LiveResumePreview 
+                  resumeData={resumeData} 
+                  templates={templates}
+                  analysis={analysis}
+                  activeTab={activeTab}
+                  coverLetterContent={coverLetterData.content}
+                />
               </CardContent>
             </Card>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Live Preview Component
+function LiveResumePreview({ 
+  resumeData, 
+  templates, 
+  analysis, 
+  activeTab, 
+  coverLetterContent 
+}: {
+  resumeData: ResumeData;
+  templates: typeof templates;
+  analysis: JobAnalysis | null;
+  activeTab: string;
+  coverLetterContent: string;
+}) {
+  const currentTemplate = templates[resumeData.templateId as keyof typeof templates] || templates.modern;
+  
+  return (
+    <div className="bg-white rounded-lg border shadow-sm min-h-[600px] overflow-hidden">
+      {resumeData.personalInfo.firstName || resumeData.personalInfo.lastName ? (
+        <div className={`${currentTemplate.headerBg} ${currentTemplate.headerText} p-6`}>
+          <h1 className="text-2xl font-bold">
+            {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}
+          </h1>
+          <div className="text-sm mt-2 space-y-1 opacity-90">
+            {resumeData.personalInfo.email && <div>{resumeData.personalInfo.email}</div>}
+            {resumeData.personalInfo.phone && <div>{resumeData.personalInfo.phone}</div>}
+            {resumeData.personalInfo.location && <div>{resumeData.personalInfo.location}</div>}
+          </div>
+        </div>
+      ) : (
+        <div className="text-center text-gray-400 py-8 border-2 border-dashed border-gray-200 rounded-lg m-6">
+          <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p>Enter your personal information to see live preview</p>
+          <p className="text-xs mt-2">Start with the Resume Builder tab</p>
+        </div>
+      )}
+      
+      <div className="p-6 space-y-6">
+        {resumeData.summary && (
+          <div>
+            <h2 className={`text-lg font-semibold mb-2 ${currentTemplate.accentColor}`}>Professional Summary</h2>
+            <p className="text-sm text-gray-700">{resumeData.summary}</p>
+          </div>
+        )}
+
+        {resumeData.experience.length > 0 && (
+          <div>
+            <h2 className={`text-lg font-semibold mb-2 ${currentTemplate.accentColor}`}>Work Experience</h2>
+            <div className="space-y-3">
+              {resumeData.experience.map((exp, index) => (
+                <div key={exp.id} className={`${currentTemplate.sectionBorder} pl-4`}>
+                  <h3 className="font-medium">{exp.position}</h3>
+                  <div className="text-sm text-gray-600">{exp.company}</div>
+                  {exp.description && (
+                    <p className="text-sm text-gray-700 mt-1">{exp.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {resumeData.skills.length > 0 && (
+          <div>
+            <h2 className={`text-lg font-semibold mb-2 ${currentTemplate.accentColor}`}>Skills</h2>
+            <div className="flex flex-wrap gap-1">
+              {resumeData.skills.map((skill, index) => (
+                <span key={index} className={`${currentTemplate.skillBadge} px-2 py-1 rounded text-xs font-medium`}>
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {analysis && activeTab === 'analyzer' && (
+          <div className="mt-6 pt-4 border-t">
+            <h2 className={`text-lg font-semibold mb-2 ${currentTemplate.accentColor}`}>Job Match Analysis</h2>
+            <div className="bg-gray-50 p-3 rounded">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium">Match Score</span>
+                <span className={`text-lg font-bold ${currentTemplate.accentColor}`}>{analysis.matchScore}%</span>
+              </div>
+              {analysis.missingSkills.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-600 mb-1">Missing Skills:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {analysis.missingSkills.slice(0, 4).map((skill, index) => (
+                      <span key={index} className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {coverLetterContent && activeTab === 'cover-letter' && (
+          <div className="mt-6 pt-4 border-t">
+            <h2 className={`text-lg font-semibold mb-2 ${currentTemplate.accentColor}`}>Cover Letter Preview</h2>
+            <div className="bg-gray-50 p-3 rounded text-xs text-gray-700 whitespace-pre-wrap max-h-40 overflow-y-auto">
+              {coverLetterContent.substring(0, 300)}...
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
