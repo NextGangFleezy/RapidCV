@@ -598,8 +598,6 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     throw new Error('Unsupported file type');
   };
 
-
-
   const parseResumeText = (text: string): ResumeData => {
     console.log("📄 PARSING RESUME TEXT - Length:", text.length);
     
