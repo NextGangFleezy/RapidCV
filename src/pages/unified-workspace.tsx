@@ -256,27 +256,44 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
         }
       }
 
-      if (user && resumeId) {
-        // Use API with saved resume for authenticated users
-        try {
-          const response = await fetch("/api/job-analyses", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              jobDescription: jobDesc,
-              resumeId: resumeId
-            }),
-          });
+      // Try AI-powered optimization first
+      try {
+        const aiResponse = await fetch("/api/ai/optimize-resume", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            resumeData: resume, 
+            jobDescription: jobDesc 
+          }),
+        });
+
+        if (aiResponse.ok) {
+          const aiOptimization = await aiResponse.json();
+          console.log("🤖 AI OPTIMIZATION RESULT:", aiOptimization);
           
-          if (response.ok) {
-            return await response.json();
+          // Store the analysis in the database if user is authenticated
+          if (user && resumeId) {
+            try {
+              await fetch("/api/job-analyses", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  jobDescription: jobDesc,
+                  resumeId: resumeId
+                }),
+              });
+            } catch (dbError) {
+              console.warn("Failed to store analysis in database:", dbError);
+            }
           }
-        } catch (error) {
-          console.warn('API analysis failed, falling back to offline analysis:', error);
+          
+          return aiOptimization;
         }
+      } catch (error) {
+        console.warn("AI optimization failed, using fallback analysis:", error);
       }
-      
-      // Always fallback to offline analysis
+
+      // Fallback to offline analysis
       return performOfflineAnalysis(jobDesc, resume);
     },
     onSuccess: (result) => {
@@ -614,7 +631,7 @@ This manual approach ensures accurate text extraction and proper resume parsing.
     return result;
   };
 
-  const handleTextImport = () => {
+  const handleTextImport = async () => {
     if (!resumeText.trim()) {
       toast({
         title: "No Text Provided",
@@ -625,13 +642,48 @@ This manual approach ensures accurate text extraction and proper resume parsing.
     }
 
     setIsProcessingFile(true);
-    console.log("🚀 STARTING TEXT IMPORT - Text length:", resumeText.length);
+    console.log("🚀 STARTING AI-POWERED TEXT IMPORT - Text length:", resumeText.length);
     
     try {
-      const parsedData = parseResumeText(resumeText);
-      console.log("🎯 PARSED DATA RESULT:", parsedData);
+      // First try AI parsing for better accuracy
+      const aiResponse = await fetch("/api/ai/parse-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText }),
+      });
+
+      if (aiResponse.ok) {
+        const aiParsedData = await aiResponse.json();
+        console.log("🤖 AI PARSED DATA:", aiParsedData);
+        
+        // Convert AI response to our ResumeData format
+        const convertedData: ResumeData = {
+          title: `${aiParsedData.personalInfo.firstName} ${aiParsedData.personalInfo.lastName} Resume`,
+          personalInfo: aiParsedData.personalInfo,
+          summary: aiParsedData.summary,
+          experience: aiParsedData.experience,
+          education: aiParsedData.education,
+          skills: aiParsedData.skills,
+          projects: aiParsedData.projects,
+          templateId: resumeData.templateId,
+        };
+        
+        setResumeData(convertedData);
+        setPreviewKey(prev => prev + 1);
+        setShowImportDialog(false);
+        
+        toast({
+          title: "Resume Imported Successfully",
+          description: `AI extracted content for ${aiParsedData.personalInfo.firstName} ${aiParsedData.personalInfo.lastName}`,
+        });
+        return;
+      }
       
-      // Validate that parsing actually extracted useful data
+      // Fallback to local parsing if AI fails
+      console.log("🔄 AI parsing failed, using fallback parser");
+      const parsedData = parseResumeText(resumeText);
+      console.log("🎯 FALLBACK PARSED DATA:", parsedData);
+      
       const hasValidData = parsedData.personalInfo.firstName || 
                           parsedData.personalInfo.lastName || 
                           parsedData.personalInfo.email || 
@@ -639,17 +691,17 @@ This manual approach ensures accurate text extraction and proper resume parsing.
                           parsedData.skills.length > 0;
       
       if (!hasValidData) {
-        console.warn("⚠️ NO USEFUL DATA EXTRACTED - Raw text:", resumeText.substring(0, 200));
+        console.warn("⚠️ NO USEFUL DATA EXTRACTED");
         toast({
           title: "Parsing Issue",
-          description: "Unable to extract resume data. Please check text format or try manual entry.",
+          description: "Unable to extract resume data. Try manual entry or check text format.",
           variant: "destructive",
         });
         return;
       }
       
       setResumeData(parsedData);
-      setPreviewKey(prev => prev + 1); // Force preview refresh
+      setPreviewKey(prev => prev + 1);
       setShowImportDialog(false);
       
       const nameStr = `${parsedData.personalInfo.firstName} ${parsedData.personalInfo.lastName}`.trim();
