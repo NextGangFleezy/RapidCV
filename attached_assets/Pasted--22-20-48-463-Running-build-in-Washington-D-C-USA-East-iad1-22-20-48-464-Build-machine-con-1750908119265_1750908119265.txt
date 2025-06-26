@@ -1,0 +1,51 @@
+[22:20:48.463] Running build in Washington, D.C., USA (East) – iad1
+[22:20:48.464] Build machine configuration: 2 cores, 8 GB
+[22:20:48.494] Cloning github.com/NextGangFleezy/RapidCV (Branch: main, Commit: 51924a5)
+[22:20:48.700] Previous build caches not available
+[22:20:48.817] Cloning completed: 318.000ms
+[22:20:48.864] Found .vercelignore
+[22:20:48.885] Removed 103 ignored files defined in .vercelignore
+[22:20:48.885]   /.git/config
+[22:20:48.885]   /.git/description
+[22:20:48.885]   /.git/FETCH_HEAD
+[22:20:48.885]   /.git/HEAD
+[22:20:48.885]   /.git/hooks/applypatch-msg.sample
+[22:20:48.886]   /.git/hooks/commit-msg.sample
+[22:20:48.886]   /.git/hooks/fsmonitor-watchman.sample
+[22:20:48.886]   /.git/hooks/post-update.sample
+[22:20:48.886]   /.git/hooks/pre-applypatch.sample
+[22:20:48.886]   /.git/hooks/pre-commit.sample
+[22:20:49.165] Running "vercel build"
+[22:20:49.686] Vercel CLI 43.3.0
+[22:20:51.018] Installing dependencies...
+[22:20:56.505] npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+[22:20:57.697] npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+[22:20:57.727] npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+[22:21:08.675] 
+[22:21:08.675] added 696 packages in 17s
+[22:21:08.676] 
+[22:21:08.676] 73 packages are looking for funding
+[22:21:08.676]   run `npm fund` for details
+[22:21:08.856] 
+[22:21:08.856] > rest-express@1.0.0 vercel-build
+[22:21:08.857] > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+[22:21:08.857] 
+[22:21:09.219] [36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[22:21:09.272] transforming...
+[22:21:09.316] [32m✓[39m 5 modules transformed.
+[22:21:09.322] [31mx[39m Build failed in 77ms
+[22:21:09.322] [31merror during build:
+[22:21:09.323] [31m[vite]: Rollup failed to resolve import "@/components/ui/toaster" from "/vercel/path0/src/App.tsx".
+[22:21:09.323] This is most likely unintended because it can break your application at runtime.
+[22:21:09.323] If you do want to externalize this module explicitly add it to
+[22:21:09.323] `build.rollupOptions.external`[31m
+[22:21:09.323]     at viteWarn (file:///vercel/path0/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:65839:17)
+[22:21:09.324]     at onRollupWarning (file:///vercel/path0/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:65871:5)
+[22:21:09.324]     at onwarn (file:///vercel/path0/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:65534:7)
+[22:21:09.324]     at file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:19452:13
+[22:21:09.324]     at Object.logger [as onLog] (file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:21178:9)
+[22:21:09.324]     at ModuleLoader.handleInvalidResolvedId (file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:20067:26)
+[22:21:09.324]     at file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:20025:26[39m
+[22:21:09.338] Error: Command "npm run vercel-build" exited with 1
+[22:21:09.668] 
+[22:21:13.263] Exiting build container
