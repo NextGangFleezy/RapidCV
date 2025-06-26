@@ -360,42 +360,191 @@ export default function Admin({ user }: AdminProps) {
         <TabsContent value="tools" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>System Tools</CardTitle>
-              <CardDescription>Administrative tools and utilities</CardDescription>
+              <CardTitle>Admin Backend Tools</CardTitle>
+              <CardDescription>Direct access to administrative functions and utilities</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
-                  <Settings className="h-6 w-6 mb-2" />
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Button 
+                  variant="outline" 
+                  className="h-auto p-4 flex flex-col items-start hover:bg-blue-50"
+                  onClick={() => window.open('/api/admin/stats', '_blank')}
+                >
+                  <BarChart3 className="h-6 w-6 mb-2 text-blue-600" />
                   <div className="text-left">
-                    <div className="font-medium">System Logs</div>
-                    <div className="text-sm text-gray-600">View application logs</div>
+                    <div className="font-medium">System Stats API</div>
+                    <div className="text-sm text-gray-600">View live system statistics</div>
                   </div>
                 </Button>
 
-                <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
-                  <BarChart3 className="h-6 w-6 mb-2" />
+                <Button 
+                  variant="outline" 
+                  className="h-auto p-4 flex flex-col items-start hover:bg-green-50"
+                  onClick={() => window.open('/api/admin/export/users', '_blank')}
+                >
+                  <Users className="h-6 w-6 mb-2 text-green-600" />
                   <div className="text-left">
-                    <div className="font-medium">Analytics</div>
-                    <div className="text-sm text-gray-600">Usage statistics</div>
+                    <div className="font-medium">Export Users</div>
+                    <div className="text-sm text-gray-600">Download user data JSON</div>
                   </div>
                 </Button>
 
-                <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
-                  <Database className="h-6 w-6 mb-2" />
+                <Button 
+                  variant="outline" 
+                  className="h-auto p-4 flex flex-col items-start hover:bg-purple-50"
+                  onClick={() => window.open('/api/admin/export/resumes', '_blank')}
+                >
+                  <FileText className="h-6 w-6 mb-2 text-purple-600" />
                   <div className="text-left">
-                    <div className="font-medium">Database Health</div>
-                    <div className="text-sm text-gray-600">Check database status</div>
+                    <div className="font-medium">Export Resumes</div>
+                    <div className="text-sm text-gray-600">Download resume data JSON</div>
                   </div>
                 </Button>
 
-                <Button variant="outline" className="h-auto p-4 flex flex-col items-start">
-                  <AlertCircle className="h-6 w-6 mb-2" />
+                <Button 
+                  variant="outline" 
+                  className="h-auto p-4 flex flex-col items-start hover:bg-orange-50"
+                  onClick={() => {
+                    if (confirm('Are you sure you want to clear all cover letters? This cannot be undone.')) {
+                      fetch('/api/admin/clear/cover-letters', { method: 'DELETE' })
+                        .then(() => {
+                          toast({ title: "Success", description: "Cover letters cleared" });
+                          queryClient.invalidateQueries();
+                        })
+                        .catch(() => toast({ title: "Error", description: "Failed to clear data", variant: "destructive" }));
+                    }
+                  }}
+                >
+                  <Trash2 className="h-6 w-6 mb-2 text-orange-600" />
                   <div className="text-left">
-                    <div className="font-medium">Error Monitor</div>
-                    <div className="text-sm text-gray-600">View error reports</div>
+                    <div className="font-medium">Clear Cover Letters</div>
+                    <div className="text-sm text-gray-600">Remove all cover letter data</div>
                   </div>
                 </Button>
+
+                <Button 
+                  variant="outline" 
+                  className="h-auto p-4 flex flex-col items-start hover:bg-indigo-50"
+                  onClick={() => {
+                    if (confirm('Are you sure you want to clear all job analyses? This cannot be undone.')) {
+                      fetch('/api/admin/clear/job-analyses', { method: 'DELETE' })
+                        .then(() => {
+                          toast({ title: "Success", description: "Job analyses cleared" });
+                          queryClient.invalidateQueries();
+                        })
+                        .catch(() => toast({ title: "Error", description: "Failed to clear data", variant: "destructive" }));
+                    }
+                  }}
+                >
+                  <Database className="h-6 w-6 mb-2 text-indigo-600" />
+                  <div className="text-left">
+                    <div className="font-medium">Clear Job Analyses</div>
+                    <div className="text-sm text-gray-600">Remove all analysis data</div>
+                  </div>
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  className="h-auto p-4 flex flex-col items-start hover:bg-red-50"
+                  onClick={() => {
+                    if (confirm('Are you sure you want to clear all resumes? This will permanently delete all resume data and cannot be undone!')) {
+                      fetch('/api/admin/clear/resumes', { method: 'DELETE' })
+                        .then(() => {
+                          toast({ title: "Success", description: "Resumes cleared" });
+                          queryClient.invalidateQueries();
+                        })
+                        .catch(() => toast({ title: "Error", description: "Failed to clear data", variant: "destructive" }));
+                    }
+                  }}
+                >
+                  <AlertCircle className="h-6 w-6 mb-2 text-red-600" />
+                  <div className="text-left">
+                    <div className="font-medium">Clear All Resumes</div>
+                    <div className="text-sm text-gray-600">⚠️ Dangerous operation</div>
+                  </div>
+                </Button>
+              </div>
+
+              <Separator />
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Quick Actions</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button 
+                    variant="default"
+                    className="justify-start"
+                    onClick={() => {
+                      fetch('/api/admin/stats')
+                        .then(res => res.json())
+                        .then(data => {
+                          alert(JSON.stringify(data, null, 2));
+                        });
+                    }}
+                  >
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    View Stats in Popup
+                  </Button>
+
+                  <Button 
+                    variant="default"
+                    className="justify-start"
+                    onClick={() => {
+                      queryClient.invalidateQueries();
+                      toast({ title: "Success", description: "All caches refreshed" });
+                    }}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Refresh All Data
+                  </Button>
+
+                  <Button 
+                    variant="outline"
+                    className="justify-start"
+                    onClick={() => {
+                      const logData = {
+                        timestamp: new Date().toISOString(),
+                        userAgent: navigator.userAgent,
+                        url: window.location.href,
+                        localStorage: Object.keys(localStorage),
+                        sessionStorage: Object.keys(sessionStorage)
+                      };
+                      console.log('Admin Debug Info:', logData);
+                      toast({ title: "Debug Info", description: "Check browser console for details" });
+                    }}
+                  >
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    Debug Info to Console
+                  </Button>
+
+                  <Button 
+                    variant="outline"
+                    className="justify-start"
+                    onClick={() => {
+                      const endpoints = [
+                        '/api/users',
+                        '/api/resumes', 
+                        '/api/cover-letters',
+                        '/api/job-analyses',
+                        '/api/admin/stats'
+                      ];
+                      
+                      Promise.all(endpoints.map(url => 
+                        fetch(url).then(res => ({ url, status: res.status, ok: res.ok }))
+                      )).then(results => {
+                        console.log('API Health Check:', results);
+                        const allHealthy = results.every(r => r.ok);
+                        toast({ 
+                          title: allHealthy ? "All APIs Healthy" : "Some APIs Have Issues", 
+                          description: `Check console for details`,
+                          variant: allHealthy ? "default" : "destructive"
+                        });
+                      });
+                    }}
+                  >
+                    <Database className="h-4 w-4 mr-2" />
+                    Test All APIs
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
