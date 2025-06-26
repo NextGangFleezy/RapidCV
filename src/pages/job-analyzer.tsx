@@ -94,16 +94,35 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
         return performOfflineAnalysis(jobDesc, resume);
       }
       
-      const response = await fetch("/api/job-analyses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jobDescription: jobDesc,
-          resumeData: resume,
-          userId: user.userData?.id
-        }),
-      });
-      return await response.json();
+      // Check if we have a saved resume to use
+      let resumeId = null;
+      if (selectedResumeId && resumes) {
+        const selectedResume = resumes.find((r: any) => r.id.toString() === selectedResumeId);
+        if (selectedResume) {
+          resumeId = selectedResume.id;
+        }
+      }
+
+      if (resumeId) {
+        // Use API with saved resume
+        const response = await fetch("/api/job-analyses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jobDescription: jobDesc,
+            resumeId: resumeId
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to analyze job posting');
+        }
+        
+        return await response.json();
+      } else {
+        // Fallback to offline analysis with current form data
+        return performOfflineAnalysis(jobDesc, resume);
+      }
     },
     onSuccess: (result) => {
       setAnalysis(result);
@@ -185,7 +204,9 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
   };
 
   const loadResumeData = (resumeId: string) => {
-    const resume = resumes.find(r => r.id.toString() === resumeId);
+    if (!Array.isArray(resumes)) return;
+    
+    const resume = resumes.find((r: any) => r?.id?.toString() === resumeId);
     if (resume) {
       setResumeData({
         personalInfo: resume.personalInfo || defaultResumeData.personalInfo,
