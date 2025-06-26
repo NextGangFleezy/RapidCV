@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { AuthUser } from "@/lib/auth";
 import type { JobAnalysis } from "@shared/schema";
-import { BarChart3, CheckCircle, AlertTriangle, XCircle, Loader2, FileSearch } from "lucide-react";
+import { BarChart3, CheckCircle, AlertTriangle, XCircle, Loader2, FileSearch } from "@/lib/icons";
 
 interface JobAnalyzerProps {
   user: AuthUser | null;

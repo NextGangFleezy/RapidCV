@@ -13,7 +13,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { generateResumePDF } from "@/lib/pdf-generator";
 import type { AuthUser } from "@/lib/auth";
 import type { Resume, InsertResume } from "@shared/schema";
-import { Download, Save, Eye } from "lucide-react";
+import { Download, Save, Eye } from "@/lib/icons";
 
 interface ResumeBuilderProps {
   user: AuthUser | null;

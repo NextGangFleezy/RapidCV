@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { AuthUser } from "@/lib/auth";
 import type { CoverLetter } from "@shared/schema";
-import { MessageSquare, Download, Loader2, FileText } from "lucide-react";
+import { MessageSquare, Download, Loader2, FileText } from "@/lib/icons";
 
 interface CoverLetterProps {
   user: AuthUser | null;
