@@ -2,7 +2,7 @@
 
 ## Overview
 
-RapidCV is a modern, full-stack resume builder application that enables users to create professional resumes with AI-powered features. The application provides an intuitive interface for building resumes, generating cover letters, and analyzing job matches using AI technology.
+RapidCV is a modern, full-stack resume builder application that enables users to create professional resumes with AI-powered features. The application provides an intuitive interface for building resumes, generating cover letters, and analyzing job matches using AI technology. Now optimized for Vercel deployment with a flat folder structure.
 
 ## System Architecture
 
@@ -16,8 +16,8 @@ RapidCV is a modern, full-stack resume builder application that enables users to
 
 ### Backend Architecture
 - **Runtime**: Node.js with TypeScript
-- **Framework**: Express.js for REST API
-- **Database**: PostgreSQL with Drizzle ORM
+- **Framework**: Express.js for development, Vercel Functions for production
+- **Database**: PostgreSQL with Drizzle ORM (in-memory storage for development)
 - **Authentication**: Firebase Authentication (server-side verification)
 - **AI Integration**: Anthropic Claude API for content generation
 - **PDF Generation**: jsPDF for client and server-side PDF creation
@@ -86,23 +86,43 @@ RapidCV is a modern, full-stack resume builder application that enables users to
 - **TypeScript**: Type safety across the application
 - **TanStack Query**: Server state management and caching
 
+## Project Structure (Flat Folder for Vercel)
+
+```
+/
+├── src/                    # React frontend code
+│   ├── components/         # UI components
+│   ├── pages/             # Route components
+│   ├── lib/               # Utilities and configurations
+│   └── hooks/             # Custom React hooks
+├── server/                # Express backend (development)
+├── api/                   # Vercel serverless functions
+├── shared/                # Shared TypeScript schemas
+├── public/                # Static assets
+├── package.json           # Dependencies and scripts
+├── vercel.json           # Vercel deployment config
+├── vite.config.ts        # Frontend build configuration
+└── index.html            # Entry point
+
+```
+
 ## Deployment Strategy
 
 ### Development Environment
 - Local development with Vite dev server
-- PostgreSQL connection via environment variables
+- In-memory storage for rapid prototyping
 - Hot module replacement for rapid development
 
-### Production Deployment
-- **Primary**: Vercel deployment with serverless functions
-- **Alternative**: Replit hosting with auto-scaling
-- Static assets served from CDN
-- Environment-based configuration management
+### Production Deployment (Vercel)
+- **Frontend**: Static assets built with Vite
+- **Backend**: Serverless functions in `/api` folder
+- **Database**: PostgreSQL via Neon (when configured)
+- **Build Process**: `vercel-build` script compiles frontend and backend
 
 ### Build Process
-1. Frontend assets built with Vite
-2. Backend compiled with esbuild for Node.js
-3. Single deployment artifact with public assets
+1. Frontend assets built with Vite to `dist/public`
+2. API functions deployed as Vercel serverless functions
+3. Static assets served from Vercel CDN
 
 ## Changelog
 - June 25, 2025. Initial setup
