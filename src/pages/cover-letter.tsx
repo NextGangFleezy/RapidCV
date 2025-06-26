@@ -134,7 +134,7 @@ export default function CoverLetter({ user }: CoverLetterProps) {
                     <SelectValue placeholder="Choose a resume to base the cover letter on" />
                   </SelectTrigger>
                   <SelectContent>
-                    {resumes?.map((resume: any) => (
+                    {resumes.map((resume: any) => (
                       <SelectItem key={resume.id} value={resume.id.toString()}>
                         {resume.title} - {resume.personalInfo?.firstName} {resume.personalInfo?.lastName}
                       </SelectItem>

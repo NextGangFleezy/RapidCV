@@ -2,10 +2,11 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { storage } from '../server/storage';
 import { insertJobAnalysisSchema } from '../shared/schema';
 
+import { analyzeJobMatch } from '../server/services/anthropic';
+
 export const config = {
   runtime: 'nodejs',
 };
-import { analyzeJobMatch } from '../server/services/anthropic';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
