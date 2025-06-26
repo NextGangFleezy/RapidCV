@@ -3,7 +3,7 @@ import { storage } from '../server/storage';
 import { insertUserSchema } from '../shared/schema';
 
 export const config = {
-  runtime: 'nodejs20.x',
+  runtime: 'nodejs',
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

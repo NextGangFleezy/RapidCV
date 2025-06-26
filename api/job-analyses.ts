@@ -3,7 +3,7 @@ import { storage } from '../server/storage';
 import { insertJobAnalysisSchema } from '../shared/schema';
 
 export const config = {
-  runtime: 'nodejs20.x',
+  runtime: 'nodejs',
 };
 import { analyzeJobMatch } from '../server/services/anthropic';
 

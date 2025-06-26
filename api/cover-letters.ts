@@ -3,7 +3,7 @@ import { storage } from '../server/storage';
 import { insertCoverLetterSchema } from '../shared/schema';
 
 export const config = {
-  runtime: 'nodejs20.x',
+  runtime: 'nodejs',
 };
 import { generateCoverLetter } from '../server/services/anthropic';
 

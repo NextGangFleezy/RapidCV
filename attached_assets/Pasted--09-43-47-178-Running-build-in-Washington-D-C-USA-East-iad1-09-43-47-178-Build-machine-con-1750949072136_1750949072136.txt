@@ -1,0 +1,58 @@
+[09:43:47.178] Running build in Washington, D.C., USA (East) – iad1
+[09:43:47.178] Build machine configuration: 2 cores, 8 GB
+[09:43:47.200] Cloning github.com/NextGangFleezy/RapidCV (Branch: main, Commit: 36e545b)
+[09:43:47.370] Previous build caches not available
+[09:43:47.519] Cloning completed: 318.000ms
+[09:43:47.553] Found .vercelignore
+[09:43:47.561] Removed 33 ignored files defined in .vercelignore
+[09:43:47.561]   /.env.example
+[09:43:47.561]   /.git/config
+[09:43:47.561]   /.git/description
+[09:43:47.562]   /.git/FETCH_HEAD
+[09:43:47.562]   /.git/HEAD
+[09:43:47.562]   /.git/hooks/applypatch-msg.sample
+[09:43:47.562]   /.git/hooks/commit-msg.sample
+[09:43:47.562]   /.git/hooks/fsmonitor-watchman.sample
+[09:43:47.562]   /.git/hooks/post-update.sample
+[09:43:47.562]   /.git/hooks/pre-applypatch.sample
+[09:43:47.947] Running "vercel build"
+[09:43:48.371] Vercel CLI 43.3.0
+[09:43:49.084] Running "install" command: `npm ci --prefer-offline --no-audit --progress=false --silent`...
+[09:44:04.613] Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+[09:44:04.613]   npx update-browserslist-db@latest
+[09:44:04.613]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[09:44:09.290] Installing dependencies...
+[09:44:10.595] 
+[09:44:10.595] up to date in 1s
+[09:44:10.607] Running "npm run vercel-build"
+[09:44:10.740] 
+[09:44:10.740] > rest-express@1.0.0 vercel-build
+[09:44:10.740] > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+[09:44:10.740] 
+[09:44:10.997] [36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[09:44:11.044] transforming...
+[09:44:11.334] Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+[09:44:11.335]   npx update-browserslist-db@latest
+[09:44:11.335]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[09:44:17.765] [32m✓[39m 575 modules transformed.
+[09:44:18.176] rendering chunks...
+[09:44:18.517] computing gzip size...
+[09:44:18.550] [2mdist/public/[22m[32mindex.html                          [39m[1m[2m  1.05 kB[22m[1m[22m[2m │ gzip:   0.46 kB[22m
+[09:44:18.551] [2mdist/public/[22m[2massets/[22m[35mindex-DmDrwRO8.css           [39m[1m[2m 67.09 kB[22m[1m[22m[2m │ gzip:  11.71 kB[22m
+[09:44:18.551] [2mdist/public/[22m[2massets/[22m[36mpurify.es-BFmuJLeH.js        [39m[1m[2m 21.93 kB[22m[1m[22m[2m │ gzip:   8.62 kB[22m
+[09:44:18.555] [2mdist/public/[22m[2massets/[22m[36mindex.es-mehAhdel.js         [39m[1m[2m150.53 kB[22m[1m[22m[2m │ gzip:  51.48 kB[22m
+[09:44:18.556] [2mdist/public/[22m[2massets/[22m[36mhtml2canvas.esm-CBrSDip1.js  [39m[1m[2m201.42 kB[22m[1m[22m[2m │ gzip:  48.03 kB[22m
+[09:44:18.556] [2mdist/public/[22m[2massets/[22m[36mindex-Dj6Vqc38.js            [39m[1m[33m962.26 kB[39m[22m[2m │ gzip: 288.12 kB[22m
+[09:44:18.556] [33m
+[09:44:18.556] (!) Some chunks are larger than 500 kB after minification. Consider:
+[09:44:18.557] - Using dynamic import() to code-split the application
+[09:44:18.557] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[09:44:18.557] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[09:44:18.557] [32m✓ built in 7.53s[39m
+[09:44:18.600] 
+[09:44:18.600]   dist/index.js  21.7kb
+[09:44:18.600] 
+[09:44:18.600] ⚡ Done in 5ms
+[09:44:18.680] Error: api/cover-letters.ts: unsupported "runtime" value in `config`: "nodejs20.x" (must be one of: ["edge","experimental-edge","nodejs"]). Learn more: https://vercel.link/creating-edge-functions
+[09:44:18.993] 
+[09:44:21.854] Exiting build container
