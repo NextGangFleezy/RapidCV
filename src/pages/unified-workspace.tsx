@@ -995,9 +995,15 @@ ${name}`;
 
     setIsGenerating(true);
     try {
+      // Optimize inputs for faster Claude processing
+      const jobDesc = jobDescription || coverLetterData.jobDescription;
+      const trimmedJobDesc = jobDesc.length > 2000 
+        ? jobDesc.substring(0, 2000)
+        : jobDesc;
+        
       await generateCoverLetterMutation.mutateAsync({
         ...coverLetterData,
-        jobDescription: jobDescription || coverLetterData.jobDescription
+        jobDescription: trimmedJobDesc
       });
     } finally {
       setIsGenerating(false);
