@@ -411,8 +411,21 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
         if (file.type === 'text/plain' || file.type === 'text/rtf') {
           resolve(result as string);
         } else if (file.type === 'application/pdf') {
-          // For PDF files, provide instructions for manual text extraction
-          resolve(`PDF file uploaded: ${file.name}\n\nNote: For best results with PDF files, please:\n1. Open your PDF file\n2. Select and copy the text content\n3. Paste it in the text area below\n\nThis ensures accurate text extraction and better resume parsing.`);
+          // For PDF files, attempt basic text extraction from binary content
+          const text = result as string;
+          // Extract readable text from PDF binary content (simplified approach)
+          const extractedText = text.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .split('stream')[0] // Remove PDF stream data
+            .replace(/[^\x20-\x7E\s]/g, '') // Keep only printable ASCII
+            .trim();
+          
+          if (extractedText.length > 50) {
+            resolve(extractedText);
+          } else {
+            // Fallback with instructions if extraction fails
+            resolve(`PDF file uploaded: ${file.name}\n\nNote: For best results with PDF files, please:\n1. Open your PDF file\n2. Select and copy the text content\n3. Paste it in the text area below\n\nThis ensures accurate text extraction and better resume parsing.`);
+          }
         } else if (file.type.includes('word') || file.type.includes('officedocument')) {
           // For Word docs, provide instructions for manual text extraction
           resolve(`Word document uploaded: ${file.name}\n\nNote: For best results with Word documents, please:\n1. Open your Word document\n2. Select and copy the text content\n3. Paste it in the text area below\n\nThis ensures accurate text extraction and better resume parsing.`);
