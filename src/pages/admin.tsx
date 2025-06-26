@@ -468,11 +468,41 @@ export default function Admin({ user }: AdminProps) {
               <Separator />
               
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Quick Actions</h3>
+                <h3 className="text-lg font-semibold">User Tools</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button 
+                    variant="default"
+                    className="justify-start bg-green-600 hover:bg-green-700"
+                    onClick={() => window.open('/builder', '_blank')}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Resume Builder
+                  </Button>
+
+                  <Button 
+                    variant="default"
+                    className="justify-start bg-indigo-600 hover:bg-indigo-700"
+                    onClick={() => window.open('/cover-letter', '_blank')}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Cover Letter Tool
+                  </Button>
+
+                  <Button 
+                    variant="default"
+                    className="justify-start bg-teal-600 hover:bg-teal-700"
+                    onClick={() => window.open('/job-analyzer', '_blank')}
+                  >
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Job Analyzer
+                  </Button>
+                </div>
+
+                <h3 className="text-lg font-semibold">Admin Actions</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Button 
                     variant="default"
-                    className="justify-start"
+                    className="justify-start bg-blue-600 hover:bg-blue-700"
                     onClick={() => {
                       fetch('/api/admin/stats')
                         .then(res => res.json())
@@ -487,7 +517,7 @@ export default function Admin({ user }: AdminProps) {
 
                   <Button 
                     variant="default"
-                    className="justify-start"
+                    className="justify-start bg-purple-600 hover:bg-purple-700"
                     onClick={() => {
                       queryClient.invalidateQueries();
                       toast({ title: "Success", description: "All caches refreshed" });
