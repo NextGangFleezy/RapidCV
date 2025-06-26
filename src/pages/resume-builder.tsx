@@ -123,7 +123,7 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
 
   // Load resume data when fetched
   useEffect(() => {
-    if (existingResume) {
+    if (existingResume && typeof existingResume === 'object') {
       setResumeData({
         title: existingResume.title || "My Resume",
         personalInfo: existingResume.personalInfo || defaultResumeData.personalInfo,
@@ -160,13 +160,15 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
 
       let response;
       if (resumeId) {
-        response = await apiRequest(`/api/resumes/${resumeId}`, {
+        response = await fetch(`/api/resumes/${resumeId}`, {
           method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(resumePayload),
         });
       } else {
-        response = await apiRequest("/api/resumes", {
+        response = await fetch("/api/resumes", {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(resumePayload),
         });
       }

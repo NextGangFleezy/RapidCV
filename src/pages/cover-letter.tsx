@@ -79,8 +79,9 @@ export default function CoverLetter({ user }: CoverLetterProps) {
         return generateOfflineCoverLetter(data);
       }
       
-      const response = await apiRequest("/api/cover-letters", {
+      const response = await fetch("/api/cover-letters", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
           userId: user.userData?.id
@@ -333,7 +334,7 @@ Tone: ${data.tone.charAt(0).toUpperCase() + data.tone.slice(1)}`;
             </Card>
 
             {/* Previous Cover Letters */}
-            {user && coverLetters.length > 0 && (
+            {user && Array.isArray(coverLetters) && coverLetters.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

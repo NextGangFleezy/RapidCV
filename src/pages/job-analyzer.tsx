@@ -94,8 +94,9 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
         return performOfflineAnalysis(jobDesc, resume);
       }
       
-      const response = await apiRequest("/api/job-analyses", {
+      const response = await fetch("/api/job-analyses", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jobDescription: jobDesc,
           resumeData: resume,
