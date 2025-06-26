@@ -477,15 +477,25 @@ This manual approach ensures accurate text extraction and proper resume parsing.
     let currentSection = '';
     let lineIndex = 0;
 
-    // Enhanced name extraction - look for the first line that looks like a name
-    for (let i = 0; i < Math.min(lines.length, 3); i++) {
-      const line = lines[i];
+    // Enhanced name extraction - more flexible approach
+    for (let i = 0; i < Math.min(lines.length, 5); i++) {
+      const line = lines[i].trim();
       const words = line.split(' ').filter(w => w.length > 0);
       
-      // Check if this looks like a name (2-4 words, no special characters, capitalized)
-      if (words.length >= 2 && words.length <= 4 && 
-          !line.includes('@') && !line.includes('(') && !line.includes('.com') &&
-          words.every(word => /^[A-Za-z]+$/.test(word) && word[0] === word[0].toUpperCase())) {
+      // Skip lines that are clearly not names
+      if (line.toLowerCase().includes('resume') || 
+          line.toLowerCase().includes('curriculum') ||
+          line.includes('@') || line.includes('(') || 
+          line.includes('.com') || line.includes('http') ||
+          words.length < 2 || words.length > 5) {
+        continue;
+      }
+      
+      // Check if this looks like a name - allow more flexibility
+      const namePattern = /^[A-Za-z][A-Za-z\s.'-]+$/;
+      if (namePattern.test(line) && 
+          words.every(word => word.length > 1) &&
+          words.some(word => word[0] === word[0].toUpperCase())) {
         result.personalInfo.firstName = words[0];
         result.personalInfo.lastName = words.slice(1).join(' ');
         console.log("👤 EXTRACTED NAME:", result.personalInfo.firstName, result.personalInfo.lastName);
@@ -621,13 +631,31 @@ This manual approach ensures accurate text extraction and proper resume parsing.
       const parsedData = parseResumeText(resumeText);
       console.log("🎯 PARSED DATA RESULT:", parsedData);
       
+      // Validate that parsing actually extracted useful data
+      const hasValidData = parsedData.personalInfo.firstName || 
+                          parsedData.personalInfo.lastName || 
+                          parsedData.personalInfo.email || 
+                          parsedData.summary || 
+                          parsedData.skills.length > 0;
+      
+      if (!hasValidData) {
+        console.warn("⚠️ NO USEFUL DATA EXTRACTED - Raw text:", resumeText.substring(0, 200));
+        toast({
+          title: "Parsing Issue",
+          description: "Unable to extract resume data. Please check text format or try manual entry.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setResumeData(parsedData);
       setPreviewKey(prev => prev + 1); // Force preview refresh
       setShowImportDialog(false);
       
+      const nameStr = `${parsedData.personalInfo.firstName} ${parsedData.personalInfo.lastName}`.trim();
       toast({
-        title: "Text Imported Successfully",
-        description: `Parsed: ${parsedData.personalInfo.firstName} ${parsedData.personalInfo.lastName}`,
+        title: "Resume Imported Successfully",
+        description: nameStr ? `Extracted content for ${nameStr}` : "Resume content has been parsed",
       });
     } catch (error) {
       console.error("❌ PARSING ERROR:", error);
@@ -934,30 +962,39 @@ ${name}`;
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              const sampleText = `John Smith
-john.smith@email.com
-(555) 123-4567
-New York, NY
+                              const sampleText = `Chadwick Gaddy
+Software Engineer
+chadwick.gaddy@email.com
+(555) 987-6543
+San Francisco, CA
 
 Summary
-Experienced software engineer with 5+ years developing web applications and leading technical teams. Passionate about creating scalable solutions and mentoring junior developers.
+Experienced full-stack developer with 6+ years building scalable web applications. Expert in React, Node.js, and cloud technologies with a proven track record of leading development teams and delivering high-quality software solutions.
 
 Experience
 Senior Software Engineer
-Tech Solutions Inc
-Built and maintained React applications serving 100k+ users. Led team of 4 developers on major product features.
+Google Inc
+2021 - Present
+• Developed and maintained React applications serving over 1M users
+• Led a team of 5 engineers on critical product features
+• Implemented microservices architecture reducing system latency by 40%
+• Mentored junior developers and conducted code reviews
 
 Software Developer
-StartupCorp
-Developed full-stack web applications using Node.js and React. Implemented automated testing reducing bugs by 40%.
+Facebook
+2019 - 2021
+• Built full-stack web applications using React and Node.js
+• Collaborated with product teams to deliver user-focused features
+• Implemented automated testing pipelines improving code quality
 
 Skills
-JavaScript, React, Node.js, Python, AWS, Docker, Git, Agile, Leadership, Problem Solving
+JavaScript, TypeScript, React, Node.js, Python, AWS, Docker, Kubernetes, MongoDB, PostgreSQL, Git, Agile, Team Leadership, System Design
 
 Education
 Bachelor of Science in Computer Science
-University of Technology
-Graduated Magna Cum Laude`;
+Stanford University
+2015 - 2019
+Graduated Summa Cum Laude, GPA: 3.9/4.0`;
                               console.log("🎯 LOADING SAMPLE TEXT - Length:", sampleText.length);
                               setResumeText(sampleText);
                             }}
