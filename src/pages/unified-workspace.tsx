@@ -917,7 +917,10 @@ ${name}`;
                         <Textarea
                           id="resumeTextInput"
                           value={resumeText}
-                          onChange={(e) => setResumeText(e.target.value)}
+                          onChange={(e) => {
+                            console.log("📝 TEXTAREA CHANGE - Length:", e.target.value.length);
+                            setResumeText(e.target.value);
+                          }}
                           placeholder="Paste your resume text here..."
                           rows={8}
                           className="w-full"
@@ -960,6 +963,7 @@ Graduated Magna Cum Laude`;
                             onClick={handleTextImport}
                             disabled={isProcessingFile || !resumeText.trim()}
                           >
+                            {console.log("🔘 BUTTON STATE - isProcessingFile:", isProcessingFile, "resumeText length:", resumeText.length, "trimmed:", resumeText.trim().length)}
                             {isProcessingFile ? (
                               <>
                                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
