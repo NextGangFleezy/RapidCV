@@ -171,12 +171,15 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
   
   // Main state
   const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
+  const [previewKey, setPreviewKey] = useState(0);
   
   // Debug: Track state changes and rendering
   useEffect(() => {
     console.log("Resume data updated - First Name:", resumeData.personalInfo.firstName);
     console.log("Resume data updated - Last Name:", resumeData.personalInfo.lastName);
-  }, [resumeData.personalInfo.firstName, resumeData.personalInfo.lastName]);
+    console.log("Resume data updated - Summary:", resumeData.summary.substring(0, 50));
+    console.log("Resume data updated - Skills count:", resumeData.skills.length);
+  }, [resumeData]);
   const [selectedResumeId, setSelectedResumeId] = useState<string>("");
   const [activeTab, setActiveTab] = useState("resume");
   
@@ -371,10 +374,14 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
 
     try {
       const extractedText = await extractTextFromFile(file);
+      console.log("Extracted text:", extractedText.substring(0, 200));
+      
       const parsedData = parseResumeText(extractedText);
+      console.log("Parsed data:", parsedData);
       
       setResumeData(parsedData);
       setResumeText(extractedText);
+      setPreviewKey(prev => prev + 1); // Force preview refresh
       setShowImportDialog(false);
       
       toast({
@@ -1358,7 +1365,7 @@ ${name}`;
               </CardHeader>
               <CardContent>
                 <LiveResumePreview 
-                  key={`${resumeData.personalInfo.firstName}-${resumeData.personalInfo.lastName}-${resumeData.templateId}`}
+                  key={previewKey}
                   resumeData={resumeData} 
                   analysis={analysis}
                   activeTab={activeTab}
