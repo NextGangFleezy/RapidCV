@@ -982,11 +982,13 @@ ${name}`;
                           id="firstName"
                           value={resumeData.personalInfo.firstName}
                           onChange={(e) => {
-                            console.log("First name input changed:", e.target.value);
-                            setResumeData(prev => ({
-                              ...prev,
-                              personalInfo: { ...prev.personalInfo, firstName: e.target.value }
-                            }));
+                            console.log("🔍 INPUT CHANGE - First name:", e.target.value);
+                            const newData = {
+                              ...resumeData,
+                              personalInfo: { ...resumeData.personalInfo, firstName: e.target.value }
+                            };
+                            console.log("🔄 SETTING NEW DATA:", newData.personalInfo);
+                            setResumeData(newData);
                           }}
                         />
                       </div>
@@ -1378,6 +1380,7 @@ ${name}`;
               </CardHeader>
               <CardContent>
                 <div className="bg-white rounded-lg border shadow-sm min-h-[600px] overflow-hidden">
+                  {console.log("🖼️ PREVIEW RENDER - firstName:", resumeData.personalInfo.firstName, "lastName:", resumeData.personalInfo.lastName)}
                   {/* Header Section */}
                   {resumeData.personalInfo.firstName || resumeData.personalInfo.lastName ? (
                     <div className="bg-blue-600 text-white p-6">
