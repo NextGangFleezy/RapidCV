@@ -32,8 +32,8 @@ export default function Admin({ user }: AdminProps) {
   const [sqlResult, setSqlResult] = useState<any>(null);
   const [selectedUserId, setSelectedUserId] = useState("");
 
-  // Check if user is admin (you can implement proper admin check)
-  const isAdmin = user?.email?.includes("admin") || user?.email?.endsWith("@rapidcv.com");
+  // Check if user is admin (simplified for development - any logged in user can access)
+  const isAdmin = !!user;
 
   const { data: users = [] } = useQuery<any[]>({
     queryKey: ['/api/users'],
@@ -117,22 +117,6 @@ export default function Admin({ user }: AdminProps) {
               <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
               <p className="text-gray-600">Please sign in to access the admin panel.</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="container max-w-4xl mx-auto py-8">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-              <p className="text-gray-600">You don't have admin privileges to access this page.</p>
             </div>
           </CardContent>
         </Card>

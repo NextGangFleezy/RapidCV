@@ -114,7 +114,7 @@ export default function Navigation({ user, onUserChange }: NavigationProps) {
                 <Link href="/job-analyzer" className="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
                   Job Analyzer
                 </Link>
-                {(user?.email?.includes("admin") || user?.email?.endsWith("@rapidcv.com")) && (
+                {user && (
                   <Link href="/admin" className="text-red-600 hover:text-red-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                     Admin
                   </Link>
