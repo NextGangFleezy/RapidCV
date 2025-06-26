@@ -2,6 +2,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { storage } from '../server/storage';
 import { insertResumeSchema } from '../shared/schema';
 
+export const config = {
+  runtime: 'nodejs20.x',
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
