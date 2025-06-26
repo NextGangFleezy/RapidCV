@@ -444,13 +444,11 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
             try {
               console.log("🤖 ATTEMPTING AI PARSING...");
               
-              // Truncate text if too large to avoid payload limits
-              const maxTextLength = 20000; // 20KB limit for API calls
+              // Optimize text size for Claude processing
+              const maxTextLength = 8000; // 8KB limit for faster processing
               const textForAI = extractedText.length > maxTextLength 
-                ? extractedText.substring(0, maxTextLength) + "\n\n[Text truncated for processing]"
+                ? extractedText.substring(0, maxTextLength)
                 : extractedText;
-              
-              console.log("📝 AI TEXT LENGTH:", textForAI.length);
               
               const aiResponse = await fetch("/api/ai/parse-resume", {
                 method: "POST",
@@ -530,69 +528,91 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     }
   };
 
-  // Fast PDF extraction with timeout protection
+  // Optimized PDF extraction with multiple fallback methods
   const extractTextFromFile = async (file: File): Promise<string> => {
     if (file.type === 'text/plain' || file.type === 'text/rtf') {
       return await file.text();
     }
     
     if (file.type === 'application/pdf') {
-      return new Promise(async (resolve, reject) => {
-        // Set timeout to prevent hanging
-        const timeout = setTimeout(() => {
-          reject(new Error('PDF extraction timeout - file may be too large or complex'));
-        }, 15000); // 15 second timeout
-        
-        try {
-          const pdfjsLib = await import('pdfjs-dist');
-          
-          if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
-          }
-          
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({ 
-            data: arrayBuffer,
-            useWorkerFetch: false,
-            isEvalSupported: false 
-          }).promise;
-          
-          let extractedText = '';
-          const maxPages = Math.min(pdf.numPages, 2); // Only first 2 pages for speed
-          
-          for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
-            try {
+      // Fast timeout to prevent hanging
+      const timeout = 8000; // 8 second timeout
+      
+      return Promise.race([
+        // Method 1: PDF.js extraction
+        (async () => {
+          try {
+            const pdfjsLib = await import('pdfjs-dist');
+            
+            if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+              pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+            }
+            
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ 
+              data: arrayBuffer,
+              useWorkerFetch: false,
+              isEvalSupported: false,
+              verbosity: 0 // Disable logging
+            }).promise;
+            
+            let extractedText = '';
+            const maxPages = Math.min(pdf.numPages, 1); // Only first page for speed
+            
+            for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
               const page = await pdf.getPage(pageNum);
               const textContent = await page.getTextContent();
               
               const pageText = textContent.items
                 .map((item: any) => item.str || '')
-                .filter(text => text.trim().length > 0)
+                .filter(text => text.trim())
                 .join(' ');
                 
-              if (pageText.trim()) {
-                extractedText += pageText + ' ';
-              }
-            } catch (pageError) {
-              continue; // Skip problematic pages
+              extractedText += pageText + ' ';
+            }
+            
+            extractedText = extractedText.replace(/\s+/g, ' ').trim();
+            
+            if (extractedText.length > 20) {
+              return extractedText;
+            }
+            throw new Error('No text found with PDF.js');
+          } catch (error) {
+            throw new Error('PDF.js extraction failed');
+          }
+        })(),
+        
+        // Method 2: Simple binary text extraction
+        (async () => {
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s for PDF.js first
+          const arrayBuffer = await file.arrayBuffer();
+          const textDecoder = new TextDecoder('latin1');
+          const pdfString = textDecoder.decode(new Uint8Array(arrayBuffer));
+          
+          // Extract text in parentheses (common PDF format)
+          const matches = pdfString.match(/\(([^)]{10,200})\)/g);
+          
+          if (matches && matches.length > 2) {
+            const text = matches
+              .map(match => match.replace(/[()]/g, '').trim())
+              .filter(part => part.length > 5 && /[a-zA-Z]/.test(part))
+              .slice(0, 30)
+              .join(' ')
+              .replace(/\s+/g, ' ')
+              .trim();
+              
+            if (text.length > 20) {
+              return text;
             }
           }
-          
-          extractedText = extractedText.replace(/\s+/g, ' ').trim();
-          
-          clearTimeout(timeout);
-          
-          if (extractedText.length > 20) {
-            resolve(extractedText);
-          } else {
-            reject(new Error('Insufficient text content found in PDF'));
-          }
-          
-        } catch (error: any) {
-          clearTimeout(timeout);
-          reject(new Error(`PDF processing failed: ${error.message}`));
-        }
-      });
+          throw new Error('Binary extraction failed');
+        })(),
+        
+        // Timeout fallback
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('PDF extraction timeout')), timeout)
+        )
+      ]);
     }
     
     throw new Error('Unsupported file type');
@@ -949,8 +969,13 @@ ${name}`;
 
     setIsAnalyzing(true);
     try {
+      // Optimize inputs for faster Claude processing
+      const trimmedJobDesc = jobDescription.trim().length > 2500 
+        ? jobDescription.trim().substring(0, 2500)
+        : jobDescription.trim();
+        
       await analyzeMutation.mutateAsync({
-        jobDesc: jobDescription,
+        jobDesc: trimmedJobDesc,
         resume: resumeData
       });
     } finally {
