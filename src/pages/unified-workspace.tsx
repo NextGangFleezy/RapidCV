@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Search, 
   FileText, 
@@ -720,43 +721,163 @@ ${name}`;
           </p>
         </div>
 
-        {/* Load existing resume */}
-        {user && Array.isArray(resumes) && resumes.length > 0 && (
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Load Existing Resume</CardTitle>
-            </CardHeader>
+        {/* Import Resume Options */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              Resume Import & Management
+              <div className="flex gap-2">
+                <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Import Resume
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Import Your Resume</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                      {/* File Upload Section */}
+                      <div>
+                        <Label className="text-base font-medium">Upload File</Label>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Upload PDF, Word document, or text file (max 50MB)
+                        </p>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".pdf,.doc,.docx,.txt,.rtf"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                          />
+                          <div className="space-y-2">
+                            <Upload className="h-8 w-8 mx-auto text-gray-400" />
+                            <div>
+                              <Button
+                                variant="outline"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isProcessingFile}
+                              >
+                                {isProcessingFile ? (
+                                  <>
+                                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                    Processing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Choose File
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              Supports PDF, DOC, DOCX, TXT, RTF files
+                            </p>
+                          </div>
+                        </div>
+                        {uploadedFile && (
+                          <div className="mt-2 text-sm text-green-600">
+                            <CheckCircle className="h-4 w-4 inline mr-1" />
+                            {uploadedFile.name} uploaded successfully
+                          </div>
+                        )}
+                      </div>
+
+                      <Separator />
+
+                      {/* Text Input Section */}
+                      <div>
+                        <Label htmlFor="resumeTextInput" className="text-base font-medium">
+                          Copy & Paste Text
+                        </Label>
+                        <p className="text-sm text-gray-600 mb-3">
+                          Paste your resume text directly for parsing
+                        </p>
+                        <Textarea
+                          id="resumeTextInput"
+                          value={resumeText}
+                          onChange={(e) => setResumeText(e.target.value)}
+                          placeholder="Paste your resume text here..."
+                          rows={8}
+                          className="w-full"
+                        />
+                        <div className="flex justify-end mt-3">
+                          <Button
+                            onClick={handleTextImport}
+                            disabled={isProcessingFile || !resumeText.trim()}
+                          >
+                            {isProcessingFile ? (
+                              <>
+                                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <CopyIcon className="h-4 w-4 mr-2" />
+                                Import Text
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {isProcessingFile && (
+                        <Alert>
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>
+                            Processing your resume... This may take a moment.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {user && (
+                  <Button
+                    onClick={() => saveResumeMutation.mutate(resumeData)}
+                    disabled={saveResumeMutation.isPending}
+                    size="sm"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Current
+                  </Button>
+                )}
+              </div>
+            </CardTitle>
+          </CardHeader>
+          {user && Array.isArray(resumes) && resumes.length > 0 && (
             <CardContent>
               <div className="flex gap-4">
-                <Select
-                  value={selectedResumeId}
-                  onValueChange={(value) => {
-                    setSelectedResumeId(value);
-                    loadResumeData(value);
-                  }}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Select a resume to load..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {resumes.map((resume: any) => (
-                      <SelectItem key={resume.id} value={resume.id.toString()}>
-                        {resume.title || `Resume ${resume.id}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  onClick={() => saveResumeMutation.mutate(resumeData)}
-                  disabled={saveResumeMutation.isPending}
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Current
-                </Button>
+                <div className="flex-1">
+                  <Label>Load Existing Resume</Label>
+                  <Select
+                    value={selectedResumeId}
+                    onValueChange={(value) => {
+                      setSelectedResumeId(value);
+                      loadResumeData(value);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a resume to load..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {resumes.map((resume: any) => (
+                        <SelectItem key={resume.id} value={resume.id.toString()}>
+                          {resume.title || `Resume ${resume.id}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
-          </Card>
-        )}
+          )}
+        </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Panel - Tools */}
