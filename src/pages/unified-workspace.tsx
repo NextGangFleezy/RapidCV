@@ -411,21 +411,19 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
         if (file.type === 'text/plain' || file.type === 'text/rtf') {
           resolve(result as string);
         } else if (file.type === 'application/pdf') {
-          // For PDF files, attempt basic text extraction from binary content
-          const text = result as string;
-          // Extract readable text from PDF binary content (simplified approach)
-          const extractedText = text.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ')
-            .replace(/\s+/g, ' ')
-            .split('stream')[0] // Remove PDF stream data
-            .replace(/[^\x20-\x7E\s]/g, '') // Keep only printable ASCII
-            .trim();
-          
-          if (extractedText.length > 50) {
-            resolve(extractedText);
-          } else {
-            // Fallback with instructions if extraction fails
-            resolve(`PDF file uploaded: ${file.name}\n\nNote: For best results with PDF files, please:\n1. Open your PDF file\n2. Select and copy the text content\n3. Paste it in the text area below\n\nThis ensures accurate text extraction and better resume parsing.`);
-          }
+          // For PDF files, we'll provide clear instructions for manual extraction
+          // PDF parsing requires specialized libraries that we don't have access to
+          resolve(`PDF file detected: ${file.name}
+
+To extract your resume content for parsing:
+
+1. Open your PDF file
+2. Select all text (Ctrl+A or Cmd+A)
+3. Copy the text (Ctrl+C or Cmd+C)
+4. Paste it in the text area below
+5. Click "Import from Text"
+
+This manual approach ensures accurate text extraction and proper resume parsing.`);
         } else if (file.type.includes('word') || file.type.includes('officedocument')) {
           // For Word docs, provide instructions for manual text extraction
           resolve(`Word document uploaded: ${file.name}\n\nNote: For best results with Word documents, please:\n1. Open your Word document\n2. Select and copy the text content\n3. Paste it in the text area below\n\nThis ensures accurate text extraction and better resume parsing.`);
@@ -902,7 +900,40 @@ ${name}`;
                           rows={8}
                           className="w-full"
                         />
-                        <div className="flex justify-end mt-3">
+                        <div className="flex justify-between mt-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const sampleText = `John Smith
+john.smith@email.com
+(555) 123-4567
+New York, NY
+
+Summary
+Experienced software engineer with 5+ years developing web applications and leading technical teams. Passionate about creating scalable solutions and mentoring junior developers.
+
+Experience
+Senior Software Engineer
+Tech Solutions Inc
+Built and maintained React applications serving 100k+ users. Led team of 4 developers on major product features.
+
+Software Developer
+StartupCorp
+Developed full-stack web applications using Node.js and React. Implemented automated testing reducing bugs by 40%.
+
+Skills
+JavaScript, React, Node.js, Python, AWS, Docker, Git, Agile, Leadership, Problem Solving
+
+Education
+Bachelor of Science in Computer Science
+University of Technology
+Graduated Magna Cum Laude`;
+                              setResumeText(sampleText);
+                            }}
+                          >
+                            Load Sample
+                          </Button>
                           <Button
                             onClick={handleTextImport}
                             disabled={isProcessingFile || !resumeText.trim()}
