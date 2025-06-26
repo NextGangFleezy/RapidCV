@@ -133,7 +133,7 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
                     <SelectValue placeholder="Choose a resume to analyze" />
                   </SelectTrigger>
                   <SelectContent>
-                    {resumes?.map((resume: any) => (
+                    {resumes.map((resume: any) => (
                       <SelectItem key={resume.id} value={resume.id.toString()}>
                         {resume.title} - {resume.personalInfo?.firstName} {resume.personalInfo?.lastName}
                       </SelectItem>
