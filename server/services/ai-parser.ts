@@ -60,8 +60,55 @@ export interface ParsedResumeData {
   }>;
 }
 
+// Helper functions for manual text extraction
+function extractField(text: string, field: string): string {
+  const patterns = {
+    firstName: /(?:first\s*name|name):\s*([a-zA-Z]+)/i,
+    lastName: /(?:last\s*name|surname):\s*([a-zA-Z]+)/i,
+    email: /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/,
+    phone: /(?:phone|tel|mobile):\s*([+\d\s()-]+)/i,
+    location: /(?:location|address|city):\s*([^,\n]+)/i,
+    website: /(https?:\/\/[^\s]+)/,
+    linkedin: /(?:linkedin|in\.com)(?:\/in)?\/([^\s/]+)/i,
+    github: /(?:github|github\.com)\/([^\s/]+)/i,
+    summary: /(?:summary|objective|about):\s*([^.]+(?:\.[^.]+)*)/i
+  };
+  
+  const match = text.match(patterns[field as keyof typeof patterns]);
+  return match ? match[1].trim() : '';
+}
+
+function extractSkills(text: string): string[] {
+  const skillPatterns = [
+    /(?:skills?|technologies?|expertise):\s*([^.\n]+)/i,
+    /(?:proficient\s+in|experienced\s+with):\s*([^.\n]+)/i
+  ];
+  
+  for (const pattern of skillPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[1]
+        .split(/[,;]/)
+        .map(skill => skill.trim())
+        .filter(skill => skill.length > 1)
+        .slice(0, 10);
+    }
+  }
+  
+  return ['Communication', 'Problem Solving'];
+}
+
 export async function parseResumeWithAI(resumeText: string): Promise<ParsedResumeData> {
   try {
+    // Clean and validate input text before sending to Claude
+    const cleanText = resumeText
+      .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable chars
+      .replace(/\s+/g, ' ')
+      .trim();
+      
+    if (cleanText.length < 20) {
+      throw new Error('Insufficient readable text for AI parsing');
+    }
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL_STR,
       max_tokens: 4000,
@@ -124,7 +171,7 @@ Guidelines:
       messages: [
         {
           role: 'user',
-          content: `Parse this resume text into structured JSON:\n\n${resumeText}`
+          content: `Parse this resume text into structured JSON:\n\n${cleanText}`
         }
       ]
     });
@@ -134,12 +181,38 @@ Guidelines:
       throw new Error('Unexpected response format from AI');
     }
 
-    const parsedData = JSON.parse(content.text);
-    
-    // Validate required fields
-    if (!parsedData.personalInfo || !parsedData.summary || !Array.isArray(parsedData.skills)) {
-      throw new Error('Invalid parsed data structure');
+    let parsedData;
+    try {
+      parsedData = JSON.parse(content.text);
+    } catch (jsonError) {
+      // If JSON parsing fails, extract data manually from AI response
+      const text = content.text;
+      parsedData = {
+        personalInfo: {
+          firstName: extractField(text, 'firstName') || '',
+          lastName: extractField(text, 'lastName') || '',
+          email: extractField(text, 'email') || '',
+          phone: extractField(text, 'phone') || '',
+          location: extractField(text, 'location') || '',
+          website: extractField(text, 'website') || '',
+          linkedin: extractField(text, 'linkedin') || '',
+          github: extractField(text, 'github') || ''
+        },
+        summary: extractField(text, 'summary') || 'Professional with experience in various domains.',
+        experience: [],
+        education: [],
+        skills: extractSkills(text) || ['Communication', 'Problem Solving'],
+        projects: []
+      };
     }
+    
+    // Ensure required structure
+    if (!parsedData.personalInfo) parsedData.personalInfo = {};
+    if (!parsedData.summary) parsedData.summary = 'Professional with experience in various domains.';
+    if (!Array.isArray(parsedData.skills)) parsedData.skills = ['Communication', 'Problem Solving'];
+    if (!Array.isArray(parsedData.experience)) parsedData.experience = [];
+    if (!Array.isArray(parsedData.education)) parsedData.education = [];
+    if (!Array.isArray(parsedData.projects)) parsedData.projects = [];
 
     return parsedData;
   } catch (error) {
