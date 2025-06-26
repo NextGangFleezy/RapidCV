@@ -361,9 +361,17 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    console.log("🚀 FILE UPLOAD STARTED:", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: new Date(file.lastModified).toISOString()
+    });
+
     // Validate file size (50MB limit)
     const maxSize = 50 * 1024 * 1024; // 50MB in bytes
     if (file.size > maxSize) {
+      console.log("❌ FILE TOO LARGE:", file.size, "vs", maxSize);
       toast({
         title: "File Too Large",
         description: "Please select a file smaller than 50MB.",
@@ -382,6 +390,7 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     ];
 
     if (!allowedTypes.includes(file.type)) {
+      console.log("❌ INVALID FILE TYPE:", file.type, "Allowed:", allowedTypes);
       toast({
         title: "Unsupported File Type",
         description: "Please upload a PDF, Word document, or text file.",
@@ -390,6 +399,7 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
       return;
     }
 
+    console.log("✅ FILE VALIDATION PASSED");
     setUploadedFile(file);
     setIsProcessingFile(true);
 
@@ -414,16 +424,20 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
           description: "Resume content has been parsed automatically.",
         });
       } else if (file.type === 'application/pdf') {
-        console.log("📄 PDF FILE - Attempting automatic text extraction");
+        console.log("📄 PDF FILE DETECTED - Starting automatic extraction process");
         try {
+          console.log("🔄 CALLING extractTextFromFile...");
           const extractedText = await extractTextFromFile(file);
-          console.log("📄 PDF TEXT EXTRACTED - Length:", extractedText.length);
+          console.log("📄 EXTRACTION COMPLETE - Text length:", extractedText.length);
+          console.log("📝 SAMPLE EXTRACTED TEXT:", extractedText.substring(0, 300));
           
           if (extractedText && extractedText.length > 100) {
+            console.log("✅ SUFFICIENT TEXT EXTRACTED - Setting resume text and parsing");
             setResumeText(extractedText);
             
             // Try AI parsing for better accuracy
             try {
+              console.log("🤖 ATTEMPTING AI PARSING...");
               const aiResponse = await fetch("/api/ai/parse-resume", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -432,6 +446,7 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
               
               if (aiResponse.ok) {
                 const aiParsedData = await aiResponse.json();
+                console.log("🎯 AI PARSING SUCCESS - Updating resume data");
                 setResumeData(aiParsedData);
                 setPreviewKey(prev => prev + 1);
                 setShowImportDialog(false);
@@ -441,12 +456,15 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
                   description: "Text extracted and parsed with AI automatically.",
                 });
                 return;
+              } else {
+                console.log("❌ AI PARSING FAILED - HTTP status:", aiResponse.status);
               }
             } catch (aiError) {
-              console.log("AI parsing failed, using fallback");
+              console.log("❌ AI PARSING ERROR:", aiError);
             }
             
             // Fallback to basic parsing
+            console.log("🔄 USING FALLBACK PARSING...");
             const parsedData = parseResumeText(extractedText);
             setResumeData(parsedData);
             setPreviewKey(prev => prev + 1);
@@ -458,6 +476,7 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
             });
           } else {
             // If extraction fails, clear textarea for manual input
+            console.log("❌ INSUFFICIENT TEXT EXTRACTED - Length:", extractedText?.length || 0);
             setResumeText("");
             toast({
               title: "PDF Upload Complete",
@@ -466,7 +485,7 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
             });
           }
         } catch (error) {
-          console.error("PDF extraction failed:", error);
+          console.error("❌ PDF EXTRACTION FAILED:", error);
           setResumeText("");
           toast({
             title: "PDF Processing Failed",
@@ -507,57 +526,86 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     }
     
     if (file.type === 'application/pdf') {
-      console.log("📄 PDF DETECTED - Using browser-based extraction");
+      console.log("📄 PDF DETECTED - Using enhanced browser-based extraction");
       
       try {
         // Convert PDF to array buffer for processing
         const arrayBuffer = await file.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
         
-        // Simple PDF text extraction using basic pattern matching
-        // This works for text-based PDFs but not image-based ones
-        const decoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: false });
-        let text = '';
+        console.log("📄 PDF BUFFER SIZE:", uint8Array.length);
         
-        // Extract text streams from PDF
-        for (let i = 0; i < uint8Array.length - 10; i++) {
-          // Look for text stream markers in PDF
-          if (uint8Array[i] === 0x42 && uint8Array[i + 1] === 0x54) { // "BT" marker
-            const streamStart = i + 2;
-            let streamEnd = streamStart;
+        // Enhanced PDF text extraction with multiple methods
+        let extractedText = '';
+        
+        // Method 1: Look for text in streams between parentheses
+        const textDecoder = new TextDecoder('latin1');
+        const pdfString = textDecoder.decode(uint8Array);
+        
+        // Extract text from PDF content streams
+        const textMatches = pdfString.match(/\(([^)]*)\)/g);
+        if (textMatches) {
+          const streamText = textMatches.map(match => {
+            let text = match.slice(1, -1); // Remove parentheses
+            // Decode common PDF escape sequences
+            text = text.replace(/\\n/g, '\n');
+            text = text.replace(/\\r/g, '\r');
+            text = text.replace(/\\t/g, '\t');
+            text = text.replace(/\\\\/g, '\\');
+            text = text.replace(/\\([0-7]{3})/g, (match, octal) => 
+              String.fromCharCode(parseInt(octal, 8))
+            );
+            return text;
+          }).join(' ');
+          
+          if (streamText.length > 50) {
+            extractedText = streamText;
+          }
+        }
+        
+        // Method 2: Look for bracketed text arrays
+        if (!extractedText) {
+          const bracketMatches = pdfString.match(/\[([^\]]*)\]/g);
+          if (bracketMatches) {
+            const bracketText = bracketMatches.map(match => {
+              const content = match.slice(1, -1);
+              // Extract text from arrays like [(Hello) (World)]
+              const textParts = content.match(/\(([^)]*)\)/g);
+              return textParts ? textParts.map(t => t.slice(1, -1)).join(' ') : '';
+            }).join(' ');
             
-            // Find end of text stream
-            while (streamEnd < uint8Array.length - 2 && 
-                   !(uint8Array[streamEnd] === 0x45 && uint8Array[streamEnd + 1] === 0x54)) {
-              streamEnd++;
-            }
-            
-            if (streamEnd > streamStart) {
-              const streamData = uint8Array.slice(streamStart, streamEnd);
-              const streamText = decoder.decode(streamData);
-              
-              // Extract text between parentheses (common PDF text format)
-              const matches = streamText.match(/\(([^)]+)\)/g);
-              if (matches) {
-                text += matches.map(match => match.slice(1, -1)).join(' ') + ' ';
-              }
+            if (bracketText.length > 50) {
+              extractedText = bracketText;
             }
           }
         }
         
-        // Clean up extracted text
-        text = text.replace(/\s+/g, ' ').trim();
-        
-        console.log("✅ PDF TEXT EXTRACTED - Length:", text.length);
-        
-        if (text.length < 50) {
-          throw new Error('Insufficient text extracted. PDF may be image-based or encrypted.');
+        // Method 3: Simple text extraction from PDF streams
+        if (!extractedText) {
+          // Look for common text patterns in PDF
+          const simpleTextMatches = pdfString.match(/[A-Za-z][A-Za-z0-9\s,.-]{10,}/g);
+          if (simpleTextMatches) {
+            extractedText = simpleTextMatches.join(' ');
+          }
         }
         
-        return text;
+        // Clean up the extracted text
+        extractedText = extractedText
+          .replace(/\s+/g, ' ')
+          .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable characters
+          .trim();
+        
+        console.log("✅ PDF TEXT EXTRACTED - Length:", extractedText.length);
+        console.log("📄 SAMPLE TEXT:", extractedText.substring(0, 200));
+        
+        if (extractedText.length < 50) {
+          throw new Error('Insufficient readable text extracted. PDF may be image-based, encrypted, or use complex formatting.');
+        }
+        
+        return extractedText;
       } catch (error) {
         console.error("❌ PDF EXTRACTION ERROR:", error);
-        throw new Error('Failed to extract text from PDF. The file may be image-based, encrypted, or corrupted. Please copy and paste the text manually.');
+        throw new Error('Failed to extract text from PDF. The file may be image-based, encrypted, or use complex formatting. Please copy and paste the text manually.');
       }
     }
     
@@ -1086,18 +1134,18 @@ ${name}`;
                           Copy & Paste Text
                         </Label>
                         {uploadedFile && uploadedFile.type === 'application/pdf' && resumeText.trim() === "" && (
-                          <Alert className="border-blue-200 bg-blue-50 mb-3">
-                            <AlertCircle className="h-4 w-4 text-blue-600" />
-                            <AlertDescription className="text-blue-800">
+                          <Alert className="border-yellow-200 bg-yellow-50 mb-3">
+                            <AlertCircle className="h-4 w-4 text-yellow-600" />
+                            <AlertDescription className="text-yellow-800">
                               <strong>PDF uploaded: {uploadedFile.name}</strong>
                               <br />
-                              Now copy text from your PDF and paste it below:
+                              Automatic text extraction failed. For best results:
                               <br />
-                              1. Open your PDF file
+                              1. Open your PDF file and copy all text (Ctrl+A, Ctrl+C)
                               <br />
-                              2. Select all text (Ctrl+A)
+                              2. Paste it in the text area below
                               <br />
-                              3. Copy (Ctrl+C) and paste below
+                              3. Click "Import Text" to parse with AI
                             </AlertDescription>
                           </Alert>
                         )}
