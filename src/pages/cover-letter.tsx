@@ -16,7 +16,7 @@ import {
   Download, 
   Save, 
   RefreshCw,
-  Copy,
+  CopyIcon,
   Edit3,
   User,
   Briefcase

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,10 @@ import {
   Minus,
   Save,
   Edit,
-  Mail
+  Mail,
+  Upload,
+  CopyIcon,
+  AlertCircle
 } from "@/lib/icons";
 import { type AuthUser } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -132,11 +135,18 @@ const defaultResumeData: ResumeData = {
 
 export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Main state
   const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
   const [selectedResumeId, setSelectedResumeId] = useState<string>("");
   const [activeTab, setActiveTab] = useState("resume");
+  
+  // File upload state
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
+  const [resumeText, setResumeText] = useState("");
+  const [showImportDialog, setShowImportDialog] = useState(false);
   
   // Job Analysis state
   const [jobDescription, setJobDescription] = useState("");
@@ -283,6 +293,231 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
       });
     },
   });
+
+  // File upload and parsing functions
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (50MB limit)
+    const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+    if (file.size > maxSize) {
+      toast({
+        title: "File Too Large",
+        description: "Please select a file smaller than 50MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+      'text/plain',
+      'text/rtf'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Unsupported File Type",
+        description: "Please upload a PDF, Word document, or text file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadedFile(file);
+    setIsProcessingFile(true);
+
+    try {
+      const extractedText = await extractTextFromFile(file);
+      const parsedData = parseResumeText(extractedText);
+      
+      setResumeData(parsedData);
+      setResumeText(extractedText);
+      setShowImportDialog(false);
+      
+      toast({
+        title: "Resume Imported Successfully",
+        description: `Extracted content from ${file.name}. Please review and edit as needed.`,
+      });
+    } catch (error) {
+      console.error('File processing error:', error);
+      toast({
+        title: "Processing Failed",
+        description: "Unable to extract text from file. Please try copy/paste instead.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingFile(false);
+    }
+  };
+
+  const extractTextFromFile = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        const content = e.target?.result;
+        
+        try {
+          if (file.type === 'text/plain') {
+            resolve(content as string);
+          } else if (file.type === 'application/pdf') {
+            // For PDF files, we'll extract what we can from the text content
+            // In a production app, you'd use a PDF parsing library like pdf-parse
+            const text = content as string;
+            const lines = text.split('\n').filter(line => line.trim());
+            resolve(lines.join('\n'));
+          } else if (file.type.includes('word')) {
+            // For Word documents, extract text content
+            // In production, you'd use a library like mammoth.js
+            const text = content as string;
+            resolve(text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim());
+          } else {
+            resolve(content as string);
+          }
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      
+      if (file.type === 'text/plain' || file.type === 'text/rtf') {
+        reader.readAsText(file);
+      } else {
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const parseResumeText = (text: string): ResumeData => {
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+    
+    const result: ResumeData = {
+      ...defaultResumeData,
+      title: uploadedFile?.name.replace(/\.[^/.]+$/, "") || "Imported Resume"
+    };
+
+    let currentSection = '';
+    let lineIndex = 0;
+
+    // Extract personal information from the first few lines
+    if (lines.length > 0) {
+      const firstLine = lines[0];
+      const nameParts = firstLine.split(' ');
+      if (nameParts.length >= 2 && !firstLine.includes('@') && !firstLine.includes('(')) {
+        result.personalInfo.firstName = nameParts[0];
+        result.personalInfo.lastName = nameParts.slice(1).join(' ');
+        lineIndex = 1;
+      }
+    }
+
+    // Look for contact info in first 5 lines
+    for (let i = lineIndex; i < Math.min(lines.length, 5); i++) {
+      const line = lines[i].toLowerCase();
+      
+      if (line.includes('@')) {
+        result.personalInfo.email = lines[i].match(/\S+@\S+\.\S+/)?.[0] || '';
+      }
+      
+      if (line.match(/\(?\d{3}\)?\s*\d{3}[-.\s]?\d{4}/)) {
+        result.personalInfo.phone = lines[i].match(/\(?\d{3}\)?\s*\d{3}[-.\s]?\d{4}/)?.[0] || '';
+      }
+      
+      if (line.includes('address') || line.includes('location') || 
+          line.match(/\d+\s+\w+\s+(street|st|avenue|ave|road|rd|drive|dr|lane|ln)/i)) {
+        result.personalInfo.location = lines[i];
+      }
+    }
+
+    // Parse sections
+    for (let i = 5; i < lines.length; i++) {
+      const line = lines[i].toLowerCase();
+      
+      if (line.includes('summary') || line.includes('objective') || line.includes('profile')) {
+        currentSection = 'summary';
+        continue;
+      } else if (line.includes('experience') || line.includes('employment') || line.includes('work history')) {
+        currentSection = 'experience';
+        continue;
+      } else if (line.includes('education') || line.includes('academic')) {
+        currentSection = 'education';
+        continue;
+      } else if (line.includes('skills') || line.includes('competencies') || line.includes('technologies')) {
+        currentSection = 'skills';
+        continue;
+      } else if (line.includes('projects') || line.includes('portfolio')) {
+        currentSection = 'projects';
+        continue;
+      }
+
+      // Process content based on current section
+      if (currentSection === 'summary' && lines[i].length > 20) {
+        result.summary += (result.summary ? ' ' : '') + lines[i];
+      } else if (currentSection === 'skills' && lines[i]) {
+        const skills = lines[i].split(/[,•·|]/);
+        skills.forEach(skill => {
+          const cleanSkill = skill.trim();
+          if (cleanSkill && cleanSkill.length > 1 && !result.skills.includes(cleanSkill)) {
+            result.skills.push(cleanSkill);
+          }
+        });
+      } else if (currentSection === 'experience' && lines[i]) {
+        // Simple experience extraction - look for company/position patterns
+        if (lines[i].length > 10 && !lines[i].includes('•') && !lines[i].includes('-')) {
+          const exp: ExperienceItem = {
+            id: Date.now().toString() + Math.random(),
+            company: lines[i],
+            position: lines[i + 1] || 'Position',
+            startDate: '',
+            endDate: '',
+            current: false,
+            description: lines[i + 2] || '',
+            achievements: []
+          };
+          result.experience.push(exp);
+        }
+      }
+    }
+
+    return result;
+  };
+
+  const handleTextImport = () => {
+    if (!resumeText.trim()) {
+      toast({
+        title: "No Text Provided",
+        description: "Please paste your resume text to import.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessingFile(true);
+    
+    try {
+      const parsedData = parseResumeText(resumeText);
+      setResumeData(parsedData);
+      setShowImportDialog(false);
+      
+      toast({
+        title: "Text Imported Successfully",
+        description: "Resume content has been parsed. Please review and edit as needed.",
+      });
+    } catch (error) {
+      toast({
+        title: "Import Failed",
+        description: "Unable to parse resume text. Please check the format.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingFile(false);
+    }
+  };
 
   // Helper functions
   const performOfflineAnalysis = (jobDesc: string, resume: ResumeData): JobAnalysis => {

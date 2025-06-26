@@ -32,7 +32,9 @@ import {
   AiOutlineBarChart,
   AiOutlineCheckCircle,
   AiOutlineWarning,
-  AiOutlineCloseCircle
+  AiOutlineCloseCircle,
+  AiOutlineUpload,
+  AiOutlineCopy
 } from 'react-icons/ai';
 
 import { 
@@ -124,7 +126,7 @@ export const CheckCircle = AiOutlineCheckCircle;
 export const AlertTriangle = AiOutlineWarning;
 export const XCircle = AiOutlineCloseCircle;
 export const FileSearch = AiOutlineSearch;
-export const Copy = AiOutlineBarChart; // Using BarChart as placeholder for Copy icon
+export const CopyIcon = AiOutlineCopy;
 export const Zap = TbBolt;
 export const Target = TbTarget;
 export const Rocket = TbRocket;
@@ -137,3 +139,4 @@ export const Users = FiUsers;
 export const Twitter = BsTwitter;
 export const Linkedin = BsLinkedin;
 export const Github = BsGithub;
+export const Upload = AiOutlineUpload;
