@@ -172,10 +172,11 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
   // Main state
   const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
   
-  // Debug: Track state changes
+  // Debug: Track state changes and rendering
   useEffect(() => {
-    console.log("Resume data updated:", resumeData.personalInfo);
-  }, [resumeData]);
+    console.log("Resume data updated - First Name:", resumeData.personalInfo.firstName);
+    console.log("Resume data updated - Last Name:", resumeData.personalInfo.lastName);
+  }, [resumeData.personalInfo.firstName, resumeData.personalInfo.lastName]);
   const [selectedResumeId, setSelectedResumeId] = useState<string>("");
   const [activeTab, setActiveTab] = useState("resume");
   
@@ -960,10 +961,13 @@ ${name}`;
                         <Input
                           id="firstName"
                           value={resumeData.personalInfo.firstName}
-                          onChange={(e) => setResumeData(prev => ({
-                            ...prev,
-                            personalInfo: { ...prev.personalInfo, firstName: e.target.value }
-                          }))}
+                          onChange={(e) => {
+                            console.log("First name input changed:", e.target.value);
+                            setResumeData(prev => ({
+                              ...prev,
+                              personalInfo: { ...prev.personalInfo, firstName: e.target.value }
+                            }));
+                          }}
                         />
                       </div>
                       <div>
@@ -1354,6 +1358,7 @@ ${name}`;
               </CardHeader>
               <CardContent>
                 <LiveResumePreview 
+                  key={`${resumeData.personalInfo.firstName}-${resumeData.personalInfo.lastName}-${resumeData.templateId}`}
                   resumeData={resumeData} 
                   analysis={analysis}
                   activeTab={activeTab}
@@ -1380,6 +1385,14 @@ function LiveResumePreview({
   activeTab: string;
   coverLetterContent: string;
 }) {
+  // Debug preview component rendering
+  useEffect(() => {
+    console.log("LiveResumePreview - Received props:", {
+      firstName: resumeData.personalInfo.firstName,
+      lastName: resumeData.personalInfo.lastName,
+      templateId: resumeData.templateId
+    });
+  }, [resumeData.personalInfo.firstName, resumeData.personalInfo.lastName, resumeData.templateId]);
   const templateConfig = {
     classic: {
       name: "Classic",
