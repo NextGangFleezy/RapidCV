@@ -594,17 +594,22 @@ This manual approach ensures accurate text extraction and proper resume parsing.
     }
 
     setIsProcessingFile(true);
+    console.log("🚀 STARTING TEXT IMPORT - Text length:", resumeText.length);
     
     try {
       const parsedData = parseResumeText(resumeText);
+      console.log("🎯 PARSED DATA RESULT:", parsedData);
+      
       setResumeData(parsedData);
+      setPreviewKey(prev => prev + 1); // Force preview refresh
       setShowImportDialog(false);
       
       toast({
         title: "Text Imported Successfully",
-        description: "Resume content has been parsed. Please review and edit as needed.",
+        description: `Parsed: ${parsedData.personalInfo.firstName} ${parsedData.personalInfo.lastName}`,
       });
     } catch (error) {
+      console.error("❌ PARSING ERROR:", error);
       toast({
         title: "Import Failed",
         description: "Unable to parse resume text. Please check the format.",
@@ -1460,24 +1465,27 @@ Graduated Magna Cum Laude`;
               <CardContent>
                 <div className="bg-white rounded-lg border shadow-sm min-h-[600px] overflow-hidden">
                   {/* Header Section */}
-                  {resumeData.personalInfo.firstName || resumeData.personalInfo.lastName ? (
-                    <div className="bg-blue-600 text-white p-6">
-                      <h1 className="text-2xl font-bold">
-                        {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}
-                      </h1>
-                      <div className="text-sm mt-2 space-y-1 opacity-90">
-                        {resumeData.personalInfo.email && <div>{resumeData.personalInfo.email}</div>}
-                        {resumeData.personalInfo.phone && <div>{resumeData.personalInfo.phone}</div>}
-                        {resumeData.personalInfo.location && <div>{resumeData.personalInfo.location}</div>}
+                  {(() => {
+                    console.log("PREVIEW RENDER CHECK - firstName:", resumeData.personalInfo.firstName, "lastName:", resumeData.personalInfo.lastName);
+                    return resumeData.personalInfo.firstName || resumeData.personalInfo.lastName ? (
+                      <div className="bg-blue-600 text-white p-6">
+                        <h1 className="text-2xl font-bold">
+                          {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}
+                        </h1>
+                        <div className="text-sm mt-2 space-y-1 opacity-90">
+                          {resumeData.personalInfo.email && <div>{resumeData.personalInfo.email}</div>}
+                          {resumeData.personalInfo.phone && <div>{resumeData.personalInfo.phone}</div>}
+                          {resumeData.personalInfo.location && <div>{resumeData.personalInfo.location}</div>}
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="text-center text-gray-400 py-8 border-2 border-dashed border-gray-200 rounded-lg m-6">
-                      <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Enter your personal information to see live preview</p>
-                      <p className="text-xs mt-2">Start with the Resume Builder tab or Import Resume</p>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="text-center text-gray-400 py-8 border-2 border-dashed border-gray-200 rounded-lg m-6">
+                        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>Enter your personal information to see live preview</p>
+                        <p className="text-xs mt-2">Start with the Resume Builder tab or Import Resume</p>
+                      </div>
+                    );
+                  })()}
                   
                   {/* Content Section */}
                   <div className="p-6 space-y-6">
