@@ -431,7 +431,7 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
           console.log("📄 EXTRACTION COMPLETE - Text length:", extractedText.length);
           console.log("📝 SAMPLE EXTRACTED TEXT:", extractedText.substring(0, 300));
           
-          if (extractedText && extractedText.length > 100) {
+          if (extractedText && extractedText.length > 50) {
             console.log("✅ SUFFICIENT TEXT EXTRACTED - Setting resume text and parsing");
             setResumeText(extractedText);
             
@@ -536,58 +536,113 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     }
     
     if (file.type === 'application/pdf') {
-      console.log("📄 PDF DETECTED - Using PDF.js for proper extraction");
+      console.log("📄 PDF DETECTED - Attempting automatic text extraction");
       
       try {
-        // Import PDF.js dynamically
-        const pdfjsLib = await import('pdfjs-dist');
-        
-        // Set worker source for PDF.js
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
-        
-        // Convert file to array buffer
+        // Convert PDF to array buffer for processing
         const arrayBuffer = await file.arrayBuffer();
         console.log("📄 PDF BUFFER SIZE:", arrayBuffer.byteLength);
         
-        // Load PDF document
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        console.log("📄 PDF LOADED - Pages:", pdf.numPages);
+        // First try PDF.js if available
+        try {
+          const pdfjsLib = await import('pdfjs-dist');
+          
+          // Configure PDF.js worker
+          if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+          }
+          
+          // Load PDF document
+          const pdf = await pdfjsLib.getDocument({ 
+            data: arrayBuffer,
+            useSystemFonts: true,
+            standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/standard_fonts/`
+          }).promise;
+          
+          console.log("📄 PDF LOADED - Pages:", pdf.numPages);
+          
+          let extractedText = '';
+          
+          // Extract text from first few pages
+          const maxPages = Math.min(pdf.numPages, 5);
+          for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+            try {
+              const page = await pdf.getPage(pageNum);
+              const textContent = await page.getTextContent();
+              
+              // Extract text with proper spacing
+              const pageText = textContent.items
+                .map((item: any) => {
+                  if (item.str && item.str.trim()) {
+                    return item.str;
+                  }
+                  return '';
+                })
+                .filter(text => text.length > 0)
+                .join(' ');
+              
+              if (pageText.trim()) {
+                extractedText += pageText + '\n';
+                console.log(`📄 PAGE ${pageNum} EXTRACTED:`, pageText.substring(0, 100));
+              }
+            } catch (pageError) {
+              console.warn(`Page ${pageNum} extraction failed:`, pageError);
+            }
+          }
+          
+          // Clean up extracted text
+          extractedText = extractedText
+            .replace(/\s+/g, ' ')
+            .replace(/[^\x20-\x7E\n\r\t]/g, '')
+            .trim();
+          
+          console.log("✅ PDF.js EXTRACTION COMPLETE - Length:", extractedText.length);
+          
+          if (extractedText.length > 50) {
+            return extractedText;
+          }
+        } catch (pdfjsError) {
+          console.warn("PDF.js extraction failed:", pdfjsError);
+        }
         
-        let extractedText = '';
+        // Fallback: Basic text pattern extraction
+        console.log("📄 Trying basic text extraction fallback...");
+        const textDecoder = new TextDecoder('latin1');
+        const pdfString = textDecoder.decode(new Uint8Array(arrayBuffer));
         
-        // Extract text from all pages
-        for (let pageNum = 1; pageNum <= Math.min(pdf.numPages, 10); pageNum++) { // Limit to 10 pages for performance
-          try {
-            const page = await pdf.getPage(pageNum);
-            const textContent = await page.getTextContent();
+        // Extract text between common PDF delimiters
+        const textPatterns = [
+          /\(([^)]{5,})\)/g,  // Text in parentheses
+          /\[([^\]]{5,})\]/g, // Text in brackets
+          /BT\s*([^ET]*)\s*ET/g, // Between BT and ET markers
+        ];
+        
+        let fallbackText = '';
+        for (const pattern of textPatterns) {
+          const matches = pdfString.match(pattern);
+          if (matches) {
+            const extractedParts = matches
+              .map(match => match.replace(/[()[\]]/g, '').trim())
+              .filter(part => part.length > 3 && /[a-zA-Z]/.test(part))
+              .slice(0, 100); // Limit matches
             
-            const pageText = textContent.items
-              .map((item: any) => item.str)
-              .join(' ');
-            
-            extractedText += pageText + '\n';
-            console.log(`📄 PAGE ${pageNum} TEXT LENGTH:`, pageText.length);
-          } catch (pageError) {
-            console.warn(`❌ Failed to extract text from page ${pageNum}:`, pageError);
+            if (extractedParts.length > 5) {
+              fallbackText = extractedParts.join(' ');
+              break;
+            }
           }
         }
         
-        // Clean up the extracted text
-        extractedText = extractedText
-          .replace(/\s+/g, ' ')
-          .trim();
-        
-        console.log("✅ PDF TEXT EXTRACTED - Total Length:", extractedText.length);
-        console.log("📄 SAMPLE TEXT:", extractedText.substring(0, 300));
-        
-        if (extractedText.length < 50) {
-          throw new Error('Insufficient readable text extracted. PDF may be image-based, scanned, or protected.');
+        if (fallbackText.length > 50) {
+          console.log("✅ FALLBACK EXTRACTION SUCCESS - Length:", fallbackText.length);
+          return fallbackText.replace(/\s+/g, ' ').trim();
         }
         
-        return extractedText;
-      } catch (error) {
-        console.error("❌ PDF EXTRACTION ERROR:", error);
-        throw new Error(`Failed to extract text from PDF: ${error.message}. The file may be image-based, protected, or corrupted.`);
+        throw new Error('Could not extract readable text from PDF. The file may be image-based or encrypted.');
+        
+      } catch (error: any) {
+        console.error("❌ PDF EXTRACTION FAILED:", error);
+        throw new Error(`PDF extraction failed: ${error.message}`);
       }
     }
     
@@ -1115,19 +1170,11 @@ ${name}`;
                         <Label htmlFor="resumeTextInput" className="text-base font-medium">
                           Copy & Paste Text
                         </Label>
-                        {uploadedFile && uploadedFile.type === 'application/pdf' && resumeText.trim() === "" && (
-                          <Alert className="border-yellow-200 bg-yellow-50 mb-3">
-                            <AlertCircle className="h-4 w-4 text-yellow-600" />
-                            <AlertDescription className="text-yellow-800">
-                              <strong>PDF uploaded: {uploadedFile.name}</strong>
-                              <br />
-                              Automatic text extraction failed. For best results:
-                              <br />
-                              1. Open your PDF file and copy all text (Ctrl+A, Ctrl+C)
-                              <br />
-                              2. Paste it in the text area below
-                              <br />
-                              3. Click "Import Text" to parse with AI
+                        {isProcessingFile && (
+                          <Alert className="border-blue-200 bg-blue-50 mb-3">
+                            <RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />
+                            <AlertDescription className="text-blue-800">
+                              Processing PDF and extracting text automatically...
                             </AlertDescription>
                           </Alert>
                         )}
