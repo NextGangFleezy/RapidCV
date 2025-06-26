@@ -424,12 +424,17 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
           description: "Resume content has been parsed automatically.",
         });
       } else if (file.type === 'application/pdf') {
-        console.log("📄 PDF FILE DETECTED - Starting automatic extraction process");
+        console.log("📄 DEBUG: PDF FILE DETECTED - Starting automatic extraction process");
+        console.log("📄 DEBUG: File name:", file.name);
+        console.log("📄 DEBUG: File size:", file.size, "bytes");
+        console.log("📄 DEBUG: File type:", file.type);
+        console.log("📄 DEBUG: File last modified:", new Date(file.lastModified).toISOString());
+        
         try {
-          console.log("🔄 CALLING extractTextFromFile...");
+          console.log("🔄 DEBUG: CALLING extractTextFromFile...");
           const extractedText = await extractTextFromFile(file);
-          console.log("📄 EXTRACTION COMPLETE - Text length:", extractedText.length);
-          console.log("📝 SAMPLE EXTRACTED TEXT:", extractedText.substring(0, 300));
+          console.log("📄 DEBUG: EXTRACTION COMPLETE - Text length:", extractedText.length);
+          console.log("📝 DEBUG: SAMPLE EXTRACTED TEXT:", extractedText.substring(0, 300));
           
           if (extractedText && extractedText.length > 50) {
             console.log("✅ SUFFICIENT TEXT EXTRACTED - Setting resume text and parsing");
@@ -527,7 +532,13 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
 
   // File text extraction utility with proper PDF.js support
   const extractTextFromFile = async (file: File): Promise<string> => {
-    console.log("📄 EXTRACTING TEXT FROM:", file.name, "Type:", file.type, "Size:", file.size);
+    console.log("📄 DEBUG: EXTRACTING TEXT FROM:", file.name, "Type:", file.type, "Size:", file.size);
+    console.log("📄 DEBUG: File details:", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: new Date(file.lastModified).toISOString()
+    });
     
     if (file.type === 'text/plain' || file.type === 'text/rtf') {
       const text = await file.text();
@@ -545,30 +556,46 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
         
         // First try PDF.js if available
         try {
+          console.log("📄 DEBUG: Importing PDF.js library...");
           const pdfjsLib = await import('pdfjs-dist');
+          console.log("📄 DEBUG: PDF.js imported successfully, version:", pdfjsLib.version);
           
           // Configure PDF.js worker
           if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+            const workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+            console.log("📄 DEBUG: Setting worker source:", workerSrc);
+            pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
+          } else {
+            console.log("📄 DEBUG: Worker already configured:", pdfjsLib.GlobalWorkerOptions.workerSrc);
           }
           
           // Load PDF document
-          const pdf = await pdfjsLib.getDocument({ 
+          console.log("📄 DEBUG: Loading PDF document...");
+          const loadingTask = pdfjsLib.getDocument({ 
             data: arrayBuffer,
             useSystemFonts: true,
             standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/standard_fonts/`
-          }).promise;
+          });
           
-          console.log("📄 PDF LOADED - Pages:", pdf.numPages);
+          console.log("📄 DEBUG: Waiting for PDF to load...");
+          const pdf = await loadingTask.promise;
+          
+          console.log("📄 DEBUG: PDF LOADED SUCCESSFULLY - Pages:", pdf.numPages);
           
           let extractedText = '';
           
           // Extract text from first few pages
           const maxPages = Math.min(pdf.numPages, 5);
+          console.log("📄 DEBUG: Starting text extraction for", maxPages, "pages");
+          
           for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
             try {
+              console.log(`📄 DEBUG: Loading page ${pageNum}...`);
               const page = await pdf.getPage(pageNum);
+              console.log(`📄 DEBUG: Page ${pageNum} loaded, getting text content...`);
+              
               const textContent = await page.getTextContent();
+              console.log(`📄 DEBUG: Page ${pageNum} text content items:`, textContent.items.length);
               
               // Extract text with proper spacing
               const pageText = textContent.items
@@ -581,12 +608,17 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
                 .filter(text => text.length > 0)
                 .join(' ');
               
+              console.log(`📄 DEBUG: Page ${pageNum} extracted text length:`, pageText.length);
+              console.log(`📄 DEBUG: Page ${pageNum} sample text:`, pageText.substring(0, 150));
+              
               if (pageText.trim()) {
                 extractedText += pageText + '\n';
-                console.log(`📄 PAGE ${pageNum} EXTRACTED:`, pageText.substring(0, 100));
+                console.log(`📄 DEBUG: Page ${pageNum} successfully added to extraction`);
+              } else {
+                console.log(`📄 DEBUG: Page ${pageNum} had no readable text`);
               }
             } catch (pageError) {
-              console.warn(`Page ${pageNum} extraction failed:`, pageError);
+              console.error(`📄 DEBUG: Page ${pageNum} extraction failed:`, pageError);
             }
           }
           
@@ -596,19 +628,25 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
             .replace(/[^\x20-\x7E\n\r\t]/g, '')
             .trim();
           
-          console.log("✅ PDF.js EXTRACTION COMPLETE - Length:", extractedText.length);
+          console.log("📄 DEBUG: Total extracted text length:", extractedText.length);
+          console.log("📄 DEBUG: Full extracted text sample:", extractedText.substring(0, 500));
           
           if (extractedText.length > 50) {
+            console.log("✅ PDF.js EXTRACTION SUCCESSFUL - Returning text");
             return extractedText;
+          } else {
+            console.log("❌ PDF.js extraction insufficient - text too short");
           }
         } catch (pdfjsError) {
-          console.warn("PDF.js extraction failed:", pdfjsError);
+          console.error("❌ PDF.js extraction failed:", pdfjsError);
         }
         
         // Fallback: Basic text pattern extraction
-        console.log("📄 Trying basic text extraction fallback...");
+        console.log("📄 DEBUG: Trying basic text extraction fallback...");
         const textDecoder = new TextDecoder('latin1');
         const pdfString = textDecoder.decode(new Uint8Array(arrayBuffer));
+        console.log("📄 DEBUG: PDF string length:", pdfString.length);
+        console.log("📄 DEBUG: PDF string sample:", pdfString.substring(0, 1000));
         
         // Extract text between common PDF delimiters
         const textPatterns = [
@@ -618,30 +656,44 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
         ];
         
         let fallbackText = '';
-        for (const pattern of textPatterns) {
+        for (let i = 0; i < textPatterns.length; i++) {
+          const pattern = textPatterns[i];
+          console.log(`📄 DEBUG: Trying pattern ${i + 1}:`, pattern);
           const matches = pdfString.match(pattern);
+          console.log(`📄 DEBUG: Pattern ${i + 1} matches:`, matches?.length || 0);
+          
           if (matches) {
             const extractedParts = matches
               .map(match => match.replace(/[()[\]]/g, '').trim())
               .filter(part => part.length > 3 && /[a-zA-Z]/.test(part))
               .slice(0, 100); // Limit matches
             
+            console.log(`📄 DEBUG: Pattern ${i + 1} valid parts:`, extractedParts.length);
+            console.log(`📄 DEBUG: Pattern ${i + 1} sample parts:`, extractedParts.slice(0, 5));
+            
             if (extractedParts.length > 5) {
               fallbackText = extractedParts.join(' ');
+              console.log("📄 DEBUG: Found sufficient text with pattern", i + 1);
               break;
             }
           }
         }
         
+        console.log("📄 DEBUG: Fallback extraction result length:", fallbackText.length);
+        console.log("📄 DEBUG: Fallback extraction sample:", fallbackText.substring(0, 200));
+        
         if (fallbackText.length > 50) {
           console.log("✅ FALLBACK EXTRACTION SUCCESS - Length:", fallbackText.length);
           return fallbackText.replace(/\s+/g, ' ').trim();
+        } else {
+          console.log("❌ FALLBACK EXTRACTION INSUFFICIENT");
         }
         
-        throw new Error('Could not extract readable text from PDF. The file may be image-based or encrypted.');
+        console.log("❌ ALL EXTRACTION METHODS FAILED");
+        throw new Error('Could not extract readable text from PDF. The file may be image-based, encrypted, or corrupted.');
         
       } catch (error: any) {
-        console.error("❌ PDF EXTRACTION FAILED:", error);
+        console.error("❌ PDF EXTRACTION COMPLETELY FAILED:", error);
         throw new Error(`PDF extraction failed: ${error.message}`);
       }
     }
