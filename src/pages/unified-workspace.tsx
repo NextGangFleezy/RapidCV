@@ -435,13 +435,22 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
             console.log("✅ SUFFICIENT TEXT EXTRACTED - Setting resume text and parsing");
             setResumeText(extractedText);
             
-            // Try AI parsing for better accuracy
+            // Try AI parsing for better accuracy - chunk text if too large
             try {
               console.log("🤖 ATTEMPTING AI PARSING...");
+              
+              // Truncate text if too large to avoid payload limits
+              const maxTextLength = 20000; // 20KB limit for API calls
+              const textForAI = extractedText.length > maxTextLength 
+                ? extractedText.substring(0, maxTextLength) + "\n\n[Text truncated for processing]"
+                : extractedText;
+              
+              console.log("📝 AI TEXT LENGTH:", textForAI.length);
+              
               const aiResponse = await fetch("/api/ai/parse-resume", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ resumeText: extractedText }),
+                body: JSON.stringify({ resumeText: textForAI }),
               });
               
               if (aiResponse.ok) {
@@ -457,7 +466,8 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
                 });
                 return;
               } else {
-                console.log("❌ AI PARSING FAILED - HTTP status:", aiResponse.status);
+                const errorText = await aiResponse.text();
+                console.log("❌ AI PARSING FAILED - Status:", aiResponse.status, "Error:", errorText);
               }
             } catch (aiError) {
               console.log("❌ AI PARSING ERROR:", aiError);
@@ -515,7 +525,7 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     }
   };
 
-  // File text extraction utility with browser-based PDF support
+  // File text extraction utility with proper PDF.js support
   const extractTextFromFile = async (file: File): Promise<string> => {
     console.log("📄 EXTRACTING TEXT FROM:", file.name, "Type:", file.type, "Size:", file.size);
     
@@ -526,86 +536,58 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     }
     
     if (file.type === 'application/pdf') {
-      console.log("📄 PDF DETECTED - Using enhanced browser-based extraction");
+      console.log("📄 PDF DETECTED - Using PDF.js for proper extraction");
       
       try {
-        // Convert PDF to array buffer for processing
+        // Import PDF.js dynamically
+        const pdfjsLib = await import('pdfjs-dist');
+        
+        // Set worker source for PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+        
+        // Convert file to array buffer
         const arrayBuffer = await file.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
+        console.log("📄 PDF BUFFER SIZE:", arrayBuffer.byteLength);
         
-        console.log("📄 PDF BUFFER SIZE:", uint8Array.length);
+        // Load PDF document
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        console.log("📄 PDF LOADED - Pages:", pdf.numPages);
         
-        // Enhanced PDF text extraction with multiple methods
         let extractedText = '';
         
-        // Method 1: Look for text in streams between parentheses
-        const textDecoder = new TextDecoder('latin1');
-        const pdfString = textDecoder.decode(uint8Array);
-        
-        // Extract text from PDF content streams
-        const textMatches = pdfString.match(/\(([^)]*)\)/g);
-        if (textMatches) {
-          const streamText = textMatches.map(match => {
-            let text = match.slice(1, -1); // Remove parentheses
-            // Decode common PDF escape sequences
-            text = text.replace(/\\n/g, '\n');
-            text = text.replace(/\\r/g, '\r');
-            text = text.replace(/\\t/g, '\t');
-            text = text.replace(/\\\\/g, '\\');
-            text = text.replace(/\\([0-7]{3})/g, (match, octal) => 
-              String.fromCharCode(parseInt(octal, 8))
-            );
-            return text;
-          }).join(' ');
-          
-          if (streamText.length > 50) {
-            extractedText = streamText;
-          }
-        }
-        
-        // Method 2: Look for bracketed text arrays
-        if (!extractedText) {
-          const bracketMatches = pdfString.match(/\[([^\]]*)\]/g);
-          if (bracketMatches) {
-            const bracketText = bracketMatches.map(match => {
-              const content = match.slice(1, -1);
-              // Extract text from arrays like [(Hello) (World)]
-              const textParts = content.match(/\(([^)]*)\)/g);
-              return textParts ? textParts.map(t => t.slice(1, -1)).join(' ') : '';
-            }).join(' ');
+        // Extract text from all pages
+        for (let pageNum = 1; pageNum <= Math.min(pdf.numPages, 10); pageNum++) { // Limit to 10 pages for performance
+          try {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
             
-            if (bracketText.length > 50) {
-              extractedText = bracketText;
-            }
-          }
-        }
-        
-        // Method 3: Simple text extraction from PDF streams
-        if (!extractedText) {
-          // Look for common text patterns in PDF
-          const simpleTextMatches = pdfString.match(/[A-Za-z][A-Za-z0-9\s,.-]{10,}/g);
-          if (simpleTextMatches) {
-            extractedText = simpleTextMatches.join(' ');
+            const pageText = textContent.items
+              .map((item: any) => item.str)
+              .join(' ');
+            
+            extractedText += pageText + '\n';
+            console.log(`📄 PAGE ${pageNum} TEXT LENGTH:`, pageText.length);
+          } catch (pageError) {
+            console.warn(`❌ Failed to extract text from page ${pageNum}:`, pageError);
           }
         }
         
         // Clean up the extracted text
         extractedText = extractedText
           .replace(/\s+/g, ' ')
-          .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable characters
           .trim();
         
-        console.log("✅ PDF TEXT EXTRACTED - Length:", extractedText.length);
-        console.log("📄 SAMPLE TEXT:", extractedText.substring(0, 200));
+        console.log("✅ PDF TEXT EXTRACTED - Total Length:", extractedText.length);
+        console.log("📄 SAMPLE TEXT:", extractedText.substring(0, 300));
         
         if (extractedText.length < 50) {
-          throw new Error('Insufficient readable text extracted. PDF may be image-based, encrypted, or use complex formatting.');
+          throw new Error('Insufficient readable text extracted. PDF may be image-based, scanned, or protected.');
         }
         
         return extractedText;
       } catch (error) {
         console.error("❌ PDF EXTRACTION ERROR:", error);
-        throw new Error('Failed to extract text from PDF. The file may be image-based, encrypted, or use complex formatting. Please copy and paste the text manually.');
+        throw new Error(`Failed to extract text from PDF: ${error.message}. The file may be image-based, protected, or corrupted.`);
       }
     }
     
