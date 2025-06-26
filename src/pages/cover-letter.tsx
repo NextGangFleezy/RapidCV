@@ -384,7 +384,7 @@ Tone: ${data.tone.charAt(0).toUpperCase() + data.tone.slice(1)}`;
                 {coverLetterData.content && (
                   <div className="flex space-x-2">
                     <Button size="sm" variant="outline" onClick={copyToClipboard}>
-                      <Copy className="h-4 w-4 mr-2" />
+                      <CopyIcon className="h-4 w-4 mr-2" />
                       Copy
                     </Button>
                     <Button size="sm" variant="outline" onClick={downloadCoverLetter}>
