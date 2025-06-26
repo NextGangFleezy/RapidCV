@@ -175,10 +175,14 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
   
   // Debug: Track state changes and rendering
   useEffect(() => {
-    console.log("Resume data updated - First Name:", resumeData.personalInfo.firstName);
-    console.log("Resume data updated - Last Name:", resumeData.personalInfo.lastName);
-    console.log("Resume data updated - Summary:", resumeData.summary.substring(0, 50));
-    console.log("Resume data updated - Skills count:", resumeData.skills.length);
+    console.log("🔄 STATE UPDATE:", {
+      firstName: resumeData.personalInfo.firstName,
+      lastName: resumeData.personalInfo.lastName,
+      email: resumeData.personalInfo.email,
+      summary: resumeData.summary.substring(0, 30),
+      skillsCount: resumeData.skills.length,
+      experienceCount: resumeData.experience.length
+    });
   }, [resumeData]);
   const [selectedResumeId, setSelectedResumeId] = useState<string>("");
   const [activeTab, setActiveTab] = useState("resume");
@@ -954,6 +958,7 @@ Education
 Bachelor of Science in Computer Science
 University of Technology
 Graduated Magna Cum Laude`;
+                              console.log("🎯 LOADING SAMPLE TEXT - Length:", sampleText.length);
                               setResumeText(sampleText);
                             }}
                           >
@@ -963,7 +968,7 @@ Graduated Magna Cum Laude`;
                             onClick={handleTextImport}
                             disabled={isProcessingFile || !resumeText.trim()}
                           >
-                            {console.log("🔘 BUTTON STATE - isProcessingFile:", isProcessingFile, "resumeText length:", resumeText.length, "trimmed:", resumeText.trim().length)}
+
                             {isProcessingFile ? (
                               <>
                                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -1486,27 +1491,24 @@ Graduated Magna Cum Laude`;
               <CardContent>
                 <div className="bg-white rounded-lg border shadow-sm min-h-[600px] overflow-hidden">
                   {/* Header Section */}
-                  {(() => {
-                    console.log("PREVIEW RENDER CHECK - firstName:", resumeData.personalInfo.firstName, "lastName:", resumeData.personalInfo.lastName);
-                    return resumeData.personalInfo.firstName || resumeData.personalInfo.lastName ? (
-                      <div className="bg-blue-600 text-white p-6">
-                        <h1 className="text-2xl font-bold">
-                          {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}
-                        </h1>
-                        <div className="text-sm mt-2 space-y-1 opacity-90">
-                          {resumeData.personalInfo.email && <div>{resumeData.personalInfo.email}</div>}
-                          {resumeData.personalInfo.phone && <div>{resumeData.personalInfo.phone}</div>}
-                          {resumeData.personalInfo.location && <div>{resumeData.personalInfo.location}</div>}
-                        </div>
+                  {resumeData.personalInfo.firstName || resumeData.personalInfo.lastName ? (
+                    <div className="bg-blue-600 text-white p-6">
+                      <h1 className="text-2xl font-bold">
+                        {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}
+                      </h1>
+                      <div className="text-sm mt-2 space-y-1 opacity-90">
+                        {resumeData.personalInfo.email && <div>{resumeData.personalInfo.email}</div>}
+                        {resumeData.personalInfo.phone && <div>{resumeData.personalInfo.phone}</div>}
+                        {resumeData.personalInfo.location && <div>{resumeData.personalInfo.location}</div>}
                       </div>
-                    ) : (
-                      <div className="text-center text-gray-400 py-8 border-2 border-dashed border-gray-200 rounded-lg m-6">
-                        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Enter your personal information to see live preview</p>
-                        <p className="text-xs mt-2">Start with the Resume Builder tab or Import Resume</p>
-                      </div>
-                    );
-                  })()}
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-400 py-8 border-2 border-dashed border-gray-200 rounded-lg m-6">
+                      <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Enter your personal information to see live preview</p>
+                      <p className="text-xs mt-2">Start with the Resume Builder tab or Import Resume</p>
+                    </div>
+                  )}
                   
                   {/* Content Section */}
                   <div className="p-6 space-y-6">
