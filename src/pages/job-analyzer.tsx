@@ -561,7 +561,7 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center py-12 text-gray-500">
-                    <FileSearch className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                    <Search className="h-16 w-16 mx-auto mb-4 opacity-50" />
                     <h3 className="text-lg font-medium mb-2">Ready to Analyze</h3>
                     <p>Paste a job description and fill in your resume details to get started.</p>
                     <p className="text-sm mt-2">

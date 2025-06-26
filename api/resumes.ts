@@ -29,7 +29,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const resumes = await storage.getUserResumes(parseInt(userId as string));
         res.json(resumes);
       } else {
-        res.status(400).json({ message: 'User ID required' });
+        // Get all resumes for admin access
+        const allResumes = await storage.getAllResumes?.() || [];
+        res.json(allResumes);
       }
     } else {
       res.status(405).json({ message: 'Method not allowed' });

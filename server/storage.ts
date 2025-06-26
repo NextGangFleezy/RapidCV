@@ -106,6 +106,7 @@ export class MemStorage implements IStorage {
 
   // Resumes
   async getResume(id: number): Promise<Resume | undefined> {
+    console.log('Getting resume with ID:', id, 'Available resumes:', Array.from(this.resumes.keys()));
     return this.resumes.get(id);
   }
 
