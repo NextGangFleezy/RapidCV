@@ -142,7 +142,7 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
   // Save resume mutation
   const saveResumeMutation = useMutation({
     mutationFn: async (data: ResumeData) => {
-      return apiRequest('/api/resumes', 'POST', {
+      const response = await apiRequest('/api/resumes', 'POST', {
         title: data.title,
         personalInfo: data.personalInfo,
         summary: data.summary,
@@ -152,6 +152,7 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
         projects: data.projects,
         templateId: data.templateId
       });
+      return await response.json();
     },
     onSuccess: () => {
       toast({ title: "Resume saved successfully!" });
@@ -165,12 +166,13 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
   // Job analysis mutation
   const analyzeMutation = useMutation({
     mutationFn: async ({ jobDesc, resume }: { jobDesc: string; resume: ResumeData }) => {
-      return apiRequest('/api/job-analyses', 'POST', {
+      const response = await apiRequest('/api/job-analyses', 'POST', {
         jobDescription: jobDesc,
         resumeData: resume
       });
+      return await response.json();
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: JobAnalysis) => {
       setJobAnalysis(data);
       toast({ title: "Job analysis completed!" });
     },
@@ -186,12 +188,10 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
   // Cover letter generation mutation  
   const generateCoverLetterMutation = useMutation({
     mutationFn: async (data: CoverLetterData) => {
-      return apiRequest('/api/cover-letters', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      const response = await apiRequest('/api/cover-letters', 'POST', data);
+      return await response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setCoverLetterData(prev => ({ ...prev, content: data.content }));
       toast({ title: "Cover letter generated successfully!" });
     },
@@ -615,12 +615,11 @@ ${resume.personalInfo.firstName} ${resume.personalInfo.lastName}`;
 
       // Try AI parsing first, fall back to manual parsing
       try {
-        const response = await apiRequest('/api/resumes/parse', {
-          method: 'POST',
-          body: JSON.stringify({ resumeText: extractedText })
+        const response = await apiRequest('/api/resumes/parse', 'POST', { 
+          resumeText: extractedText 
         });
 
-        const parsedData = response.data;
+        const parsedData = await response.json();
         const convertedData: ResumeData = {
           title: file.name.replace(/\.[^/.]+$/, ""),
           personalInfo: parsedData.personalInfo || defaultResumeData.personalInfo,
