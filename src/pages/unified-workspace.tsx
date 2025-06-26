@@ -394,16 +394,16 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     setIsProcessingFile(true);
 
     try {
-      const extractedText = await extractTextFromFile(file);
-      console.log("Extracted text:", extractedText.substring(0, 200));
+      console.log("🔍 PROCESSING FILE:", file.name, "Type:", file.type);
       
-      // Set the text in the textarea but don't auto-parse
-      setResumeText(extractedText);
-      
-      // For text files, auto-parse. For PDF/Word, require manual import
+      // Handle different file types appropriately
       if (file.type === 'text/plain' || file.type === 'text/rtf') {
+        console.log("📝 TEXT FILE - Extracting and auto-parsing");
+        const extractedText = await extractTextFromFile(file);
+        console.log("📄 EXTRACTED TEXT LENGTH:", extractedText.length);
+        
+        setResumeText(extractedText);
         const parsedData = parseResumeText(extractedText);
-        console.log("Parsed data:", parsedData);
         
         setResumeData(parsedData);
         setPreviewKey(prev => prev + 1);
@@ -414,18 +414,15 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
           description: "Resume content has been parsed automatically.",
         });
       } else {
-        // For PDF/Word files, clear the textarea and show instructions
+        // For PDF/Word files, clear textarea and guide user to manual input
+        console.log("📄 PDF/WORD FILE - Requiring manual text input");
         setResumeText("");
+        
         toast({
-          title: "PDF/Word File Detected",
-          description: "Please copy text from your file, paste it below, and click 'Import Text'.",
+          title: "File Upload Complete",
+          description: "Copy your resume text from the file, paste it below, and click Import Text.",
         });
       }
-      
-      toast({
-        title: "Resume Imported Successfully",
-        description: `Extracted content from ${file.name}. Please review and edit as needed.`,
-      });
     } catch (error) {
       console.error('File processing error:', error);
       toast({
@@ -1056,8 +1053,12 @@ Graduated Summa Cum Laude, GPA: 3.9/4.0`;
                           <Button
                             onClick={handleTextImport}
                             disabled={isProcessingFile || !resumeText.trim()}
+                            className={!resumeText.trim() ? "opacity-50 cursor-not-allowed" : ""}
                           >
-
+                            {(() => {
+                              console.log("🔘 BUTTON RENDER - Processing:", isProcessingFile, "Text length:", resumeText.length, "Trimmed:", resumeText.trim().length);
+                              return null;
+                            })()}
                             {isProcessingFile ? (
                               <>
                                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
