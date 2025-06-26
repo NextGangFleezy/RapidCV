@@ -39,7 +39,7 @@ import {
   BsBriefcase,
   BsCircle,
   BsDot,
-  BsFileEarmarkSearch,
+  BsFileEarmark,
   BsShield,
   BsTwitter,
   BsLinkedin,
@@ -77,7 +77,7 @@ import {
   TbRocket,
   TbStar,
   TbTrendingUp,
-  TbZap
+  TbBolt
 } from 'react-icons/tb';
 
 // Export as consistent interface
@@ -122,8 +122,8 @@ export const BarChart3 = AiOutlineBarChart;
 export const CheckCircle = AiOutlineCheckCircle;
 export const AlertTriangle = AiOutlineWarning;
 export const XCircle = AiOutlineCloseCircle;
-export const FileSearch = BsFileEarmarkSearch;
-export const Zap = TbZap;
+export const FileSearch = BsFileEarmark;
+export const Zap = TbBolt;
 export const Target = TbTarget;
 export const Rocket = TbRocket;
 export const Shield = BsShield;

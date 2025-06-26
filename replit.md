@@ -125,6 +125,7 @@ RapidCV is a modern, full-stack resume builder application that enables users to
 3. Static assets served from Vercel CDN
 
 ## Changelog
+- June 26, 2025: FULLY RESOLVED Vercel build timeout issue - replaced Lucide React with React Icons, reducing build time from 60+ seconds to ~5 seconds
 - June 26, 2025: FULLY RESOLVED Vercel deployment issue - fixed function runtime configuration and optimized dependency installation
 - June 26, 2025: Fixed ES module compatibility issue with import.meta.dirname  
 - June 26, 2025: Created GitHub deployment files (README.md, LICENSE, .env.example, DEPLOYMENT.md)
