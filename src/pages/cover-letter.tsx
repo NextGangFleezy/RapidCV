@@ -27,12 +27,12 @@ export default function CoverLetter({ user }: CoverLetterProps) {
   });
   const [generatedLetter, setGeneratedLetter] = useState<CoverLetter | null>(null);
 
-  const { data: resumes } = useQuery({
+  const { data: resumes = [] } = useQuery<any[]>({
     queryKey: [`/api/users/${user?.userData?.id}/resumes`],
     enabled: !!user?.userData?.id,
   });
 
-  const { data: coverLetters } = useQuery({
+  const { data: coverLetters = [] } = useQuery<CoverLetter[]>({
     queryKey: [`/api/users/${user?.userData?.id}/cover-letters`],
     enabled: !!user?.userData?.id,
   });
@@ -236,7 +236,7 @@ export default function CoverLetter({ user }: CoverLetterProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {coverLetters && coverLetters.length > 0 ? (
+                {coverLetters.length > 0 ? (
                   <div className="space-y-3">
                     {coverLetters.map((letter: CoverLetter) => (
                       <div
@@ -248,7 +248,7 @@ export default function CoverLetter({ user }: CoverLetterProps) {
                             {letter.jobTitle} at {letter.companyName}
                           </h4>
                           <p className="text-sm text-gray-500">
-                            {new Date(letter.createdAt).toLocaleDateString()}
+                            {letter.createdAt ? new Date(letter.createdAt).toLocaleDateString() : 'Unknown date'}
                           </p>
                         </div>
                         <Button

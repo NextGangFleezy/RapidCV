@@ -26,12 +26,12 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
   });
   const [analysis, setAnalysis] = useState<JobAnalysis | null>(null);
 
-  const { data: resumes } = useQuery({
+  const { data: resumes = [] } = useQuery<any[]>({
     queryKey: [`/api/users/${user?.userData?.id}/resumes`],
     enabled: !!user?.userData?.id,
   });
 
-  const { data: jobAnalyses } = useQuery({
+  const { data: jobAnalyses = [] } = useQuery<JobAnalysis[]>({
     queryKey: [`/api/users/${user?.userData?.id}/job-analyses`],
     enabled: !!user?.userData?.id,
   });
@@ -286,7 +286,7 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {jobAnalyses && jobAnalyses.length > 0 ? (
+                {jobAnalyses.length > 0 ? (
                   <div className="space-y-3">
                     {jobAnalyses.map((analysis: JobAnalysis) => (
                       <div
@@ -299,7 +299,7 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
                             {analysis.jobDescription.substring(0, 100)}...
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
-                            {new Date(analysis.createdAt).toLocaleDateString()}
+                            {analysis.createdAt ? new Date(analysis.createdAt).toLocaleDateString() : 'Unknown date'}
                           </p>
                         </div>
                         <div className="flex items-center ml-4">
