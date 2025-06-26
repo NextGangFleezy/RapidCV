@@ -2,10 +2,11 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { storage } from '../server/storage';
 import { insertCoverLetterSchema } from '../shared/schema';
 
+import { generateCoverLetter } from '../server/services/anthropic';
+
 export const config = {
   runtime: 'nodejs',
 };
-import { generateCoverLetter } from '../server/services/anthropic';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');

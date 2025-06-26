@@ -1,5 +1,5 @@
 {
-  "buildCommand": "vite build --config vite.config.production.ts",
+  "buildCommand": "npm run vercel-build",
   "outputDirectory": "dist/public",
   "installCommand": "npm ci --prefer-offline --no-audit --progress=false --silent",
   "framework": null
