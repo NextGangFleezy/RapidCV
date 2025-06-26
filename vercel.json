@@ -1,11 +1,25 @@
 {
-  "buildCommand": "npm run vercel-build",
+  "buildCommand": "node build-optimize.js",
   "outputDirectory": "dist/public",
-  "installCommand": "npm ci --prefer-offline --no-audit --progress=false",
+  "installCommand": "npm ci --prefer-offline --no-audit --progress=false --silent",
   "framework": null,
+  "builds": [
+    {
+      "src": "api/**/*.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/public"
+      }
+    }
+  ],
   "functions": {
     "api/**/*.ts": {
-      "runtime": "nodejs20.x"
+      "runtime": "nodejs20.x",
+      "maxDuration": 30
     }
   },
   "rewrites": [
