@@ -16,29 +16,21 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
     target: 'es2020',
-    minify: 'esbuild',
+    minify: false,
     sourcemap: false,
+    cssCodeSplit: false,
     rollupOptions: {
-      treeshake: true,
+      treeshake: 'smallest',
       output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react')) return 'react';
-            if (id.includes('@radix-ui')) return 'radix';
-            if (id.includes('lucide-react')) return 'icons';
-            if (id.includes('@tanstack')) return 'query';
-            return 'vendor';
-          }
-        },
+        manualChunks: undefined,
       },
+      external: [],
     },
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 5000,
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'wouter', '@tanstack/react-query'],
-    exclude: ['lucide-react'],
+    force: true,
+    include: ['react', 'react-dom'],
   },
-  esbuild: {
-    logOverride: { 'this-is-undefined-in-esm': 'silent' }
-  },
+  logLevel: 'error',
 });
