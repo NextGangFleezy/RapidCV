@@ -19,6 +19,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // return res.status(401).json({ error: 'Admin access required' });
     }
 
+    if (method === 'GET' && pathSegments[2] === 'stats') {
+      // Return system statistics
+      const users = storage.getAllUsers ? await storage.getAllUsers() : [];
+      const resumes = storage.getAllResumes ? await storage.getAllResumes() : [];
+      const coverLetters = storage.getAllCoverLetters ? await storage.getAllCoverLetters() : [];
+      const jobAnalyses = storage.getAllJobAnalyses ? await storage.getAllJobAnalyses() : [];
+      
+      return res.json({
+        users: users.length,
+        resumes: resumes.length,
+        coverLetters: coverLetters.length,
+        jobAnalyses: jobAnalyses.length
+      });
+    }
+
     if (method === 'GET' && pathSegments[2] === 'export') {
       const dataType = pathSegments[3];
       

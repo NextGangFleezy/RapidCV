@@ -40,18 +40,8 @@ export default function Admin({ user }: AdminProps) {
     enabled: !!user && isAdmin,
   });
 
-  const { data: allResumes = [] } = useQuery<any[]>({
-    queryKey: ['/api/admin/resumes'],
-    enabled: !!user && isAdmin,
-  });
-
-  const { data: allCoverLetters = [] } = useQuery<any[]>({
-    queryKey: ['/api/admin/cover-letters'],
-    enabled: !!user && isAdmin,
-  });
-
-  const { data: allJobAnalyses = [] } = useQuery<any[]>({
-    queryKey: ['/api/admin/job-analyses'],
+  const { data: systemStats } = useQuery<any>({
+    queryKey: ['/api/admin/stats'],
     enabled: !!user && isAdmin,
   });
 
@@ -100,7 +90,7 @@ export default function Admin({ user }: AdminProps) {
     mutationFn: async (dataType: string) => {
       return apiRequest("GET", `/api/admin/export/${dataType}`);
     },
-    onSuccess: async (response) => {
+    onSuccess: async (response, dataType) => {
       const data = await response.json();
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -184,7 +174,7 @@ export default function Admin({ user }: AdminProps) {
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{allResumes.length}</div>
+                <div className="text-2xl font-bold">{systemStats?.resumes || 0}</div>
               </CardContent>
             </Card>
 
@@ -194,7 +184,7 @@ export default function Admin({ user }: AdminProps) {
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{allCoverLetters.length}</div>
+                <div className="text-2xl font-bold">{systemStats?.coverLetters || 0}</div>
               </CardContent>
             </Card>
 
@@ -204,7 +194,7 @@ export default function Admin({ user }: AdminProps) {
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{allJobAnalyses.length}</div>
+                <div className="text-2xl font-bold">{systemStats?.jobAnalyses || 0}</div>
               </CardContent>
             </Card>
           </div>
