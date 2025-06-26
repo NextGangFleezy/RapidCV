@@ -139,9 +139,9 @@ export class MemStorage implements IStorage {
       ...resume, 
       ...updateData, 
       updatedAt: new Date() 
-    };
+    } as Resume;
     this.resumes.set(id, updatedResume);
-    return updatedResume;
+    return updatedResume as Resume;
   }
 
   async deleteResume(id: number): Promise<boolean> {
