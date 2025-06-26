@@ -376,13 +376,30 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
       const extractedText = await extractTextFromFile(file);
       console.log("Extracted text:", extractedText.substring(0, 200));
       
-      const parsedData = parseResumeText(extractedText);
-      console.log("Parsed data:", parsedData);
-      
-      setResumeData(parsedData);
+      // Set the text in the textarea but don't auto-parse
       setResumeText(extractedText);
-      setPreviewKey(prev => prev + 1); // Force preview refresh
-      setShowImportDialog(false);
+      
+      // For text files, auto-parse. For PDF/Word, require manual import
+      if (file.type === 'text/plain' || file.type === 'text/rtf') {
+        const parsedData = parseResumeText(extractedText);
+        console.log("Parsed data:", parsedData);
+        
+        setResumeData(parsedData);
+        setPreviewKey(prev => prev + 1);
+        setShowImportDialog(false);
+        
+        toast({
+          title: "Text File Imported",
+          description: "Resume content has been parsed automatically.",
+        });
+      } else {
+        // For PDF/Word files, clear the textarea and show instructions
+        setResumeText("");
+        toast({
+          title: "PDF/Word File Detected",
+          description: "Please copy text from your file, paste it below, and click 'Import Text'.",
+        });
+      }
       
       toast({
         title: "Resume Imported Successfully",
