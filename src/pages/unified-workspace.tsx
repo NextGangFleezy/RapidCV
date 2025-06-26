@@ -171,6 +171,11 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
   
   // Main state
   const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
+  
+  // Debug: Track state changes
+  useEffect(() => {
+    console.log("Resume data updated:", resumeData.personalInfo);
+  }, [resumeData]);
   const [selectedResumeId, setSelectedResumeId] = useState<string>("");
   const [activeTab, setActiveTab] = useState("resume");
   
@@ -1350,7 +1355,6 @@ ${name}`;
               <CardContent>
                 <LiveResumePreview 
                   resumeData={resumeData} 
-                  templates={templates}
                   analysis={analysis}
                   activeTab={activeTab}
                   coverLetterContent={coverLetterData.content}
@@ -1367,18 +1371,46 @@ ${name}`;
 // Live Preview Component
 function LiveResumePreview({ 
   resumeData, 
-  templates, 
   analysis, 
   activeTab, 
   coverLetterContent 
 }: {
   resumeData: ResumeData;
-  templates: typeof templates;
   analysis: JobAnalysis | null;
   activeTab: string;
   coverLetterContent: string;
 }) {
-  const currentTemplate = templates[resumeData.templateId as keyof typeof templates] || templates.modern;
+  const templateConfig = {
+    classic: {
+      name: "Classic",
+      description: "Traditional professional layout",
+      headerBg: "bg-gray-800",
+      headerText: "text-white",
+      accentColor: "text-gray-800",
+      sectionBorder: "border-l-2 border-gray-300",
+      skillBadge: "bg-gray-100 text-gray-800"
+    },
+    modern: {
+      name: "Modern",
+      description: "Clean contemporary design",
+      headerBg: "bg-blue-600",
+      headerText: "text-white",
+      accentColor: "text-blue-600",
+      sectionBorder: "border-l-2 border-blue-200",
+      skillBadge: "bg-blue-100 text-blue-800"
+    },
+    creative: {
+      name: "Creative",
+      description: "Vibrant design for creative roles",
+      headerBg: "bg-purple-600",
+      headerText: "text-white",
+      accentColor: "text-purple-600",
+      sectionBorder: "border-l-2 border-purple-200",
+      skillBadge: "bg-purple-100 text-purple-800"
+    }
+  };
+  
+  const currentTemplate = templateConfig[resumeData.templateId as keyof typeof templateConfig] || templateConfig.modern;
   
   return (
     <div className="bg-white rounded-lg border shadow-sm min-h-[600px] overflow-hidden">
