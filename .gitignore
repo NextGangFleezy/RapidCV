@@ -83,3 +83,6 @@ coverage/
 
 # TernJS port file
 .tern-port
+
+# Client compatibility layer (not part of deployment)
+client/
