@@ -413,9 +413,70 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
           title: "Text File Imported",
           description: "Resume content has been parsed automatically.",
         });
+      } else if (file.type === 'application/pdf') {
+        console.log("📄 PDF FILE - Attempting automatic text extraction");
+        try {
+          const extractedText = await extractTextFromFile(file);
+          console.log("📄 PDF TEXT EXTRACTED - Length:", extractedText.length);
+          
+          if (extractedText && extractedText.length > 100) {
+            setResumeText(extractedText);
+            
+            // Try AI parsing for better accuracy
+            try {
+              const aiResponse = await fetch("/api/ai/parse-resume", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ resumeText: extractedText }),
+              });
+              
+              if (aiResponse.ok) {
+                const aiParsedData = await aiResponse.json();
+                setResumeData(aiParsedData);
+                setPreviewKey(prev => prev + 1);
+                setShowImportDialog(false);
+                
+                toast({
+                  title: "PDF Imported Successfully",
+                  description: "Text extracted and parsed with AI automatically.",
+                });
+                return;
+              }
+            } catch (aiError) {
+              console.log("AI parsing failed, using fallback");
+            }
+            
+            // Fallback to basic parsing
+            const parsedData = parseResumeText(extractedText);
+            setResumeData(parsedData);
+            setPreviewKey(prev => prev + 1);
+            setShowImportDialog(false);
+            
+            toast({
+              title: "PDF Imported",
+              description: "Text extracted automatically from PDF.",
+            });
+          } else {
+            // If extraction fails, clear textarea for manual input
+            setResumeText("");
+            toast({
+              title: "PDF Upload Complete",
+              description: "Automatic extraction failed. Please copy text from your PDF and paste below.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error("PDF extraction failed:", error);
+          setResumeText("");
+          toast({
+            title: "PDF Processing Failed",
+            description: "Please copy text from your PDF and paste it below.",
+            variant: "destructive",
+          });
+        }
       } else {
-        // For PDF/Word files, clear textarea and guide user to manual input
-        console.log("📄 PDF/WORD FILE - Requiring manual text input");
+        // For Word/other files, guide user to manual input
+        console.log("📄 OTHER FILE TYPE - Requiring manual text input");
         setResumeText("");
         
         toast({
@@ -435,7 +496,7 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     }
   };
 
-  // File text extraction utility with PDF support
+  // File text extraction utility with browser-based PDF support
   const extractTextFromFile = async (file: File): Promise<string> => {
     console.log("📄 EXTRACTING TEXT FROM:", file.name, "Type:", file.type, "Size:", file.size);
     
@@ -446,28 +507,57 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     }
     
     if (file.type === 'application/pdf') {
-      console.log("📄 PDF DETECTED - Using server-side extraction");
+      console.log("📄 PDF DETECTED - Using browser-based extraction");
       
       try {
-        // Send PDF to backend for text extraction
-        const formData = new FormData();
-        formData.append('pdf', file);
+        // Convert PDF to array buffer for processing
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
         
-        const response = await fetch('/api/pdf/extract-text', {
-          method: 'POST',
-          body: formData,
-        });
+        // Simple PDF text extraction using basic pattern matching
+        // This works for text-based PDFs but not image-based ones
+        const decoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: false });
+        let text = '';
         
-        if (!response.ok) {
-          throw new Error(`PDF extraction failed: ${response.statusText}`);
+        // Extract text streams from PDF
+        for (let i = 0; i < uint8Array.length - 10; i++) {
+          // Look for text stream markers in PDF
+          if (uint8Array[i] === 0x42 && uint8Array[i + 1] === 0x54) { // "BT" marker
+            const streamStart = i + 2;
+            let streamEnd = streamStart;
+            
+            // Find end of text stream
+            while (streamEnd < uint8Array.length - 2 && 
+                   !(uint8Array[streamEnd] === 0x45 && uint8Array[streamEnd + 1] === 0x54)) {
+              streamEnd++;
+            }
+            
+            if (streamEnd > streamStart) {
+              const streamData = uint8Array.slice(streamStart, streamEnd);
+              const streamText = decoder.decode(streamData);
+              
+              // Extract text between parentheses (common PDF text format)
+              const matches = streamText.match(/\(([^)]+)\)/g);
+              if (matches) {
+                text += matches.map(match => match.slice(1, -1)).join(' ') + ' ';
+              }
+            }
+          }
         }
         
-        const data = await response.json();
-        console.log("✅ PDF TEXT EXTRACTED - Length:", data.text.length);
-        return data.text;
+        // Clean up extracted text
+        text = text.replace(/\s+/g, ' ').trim();
+        
+        console.log("✅ PDF TEXT EXTRACTED - Length:", text.length);
+        
+        if (text.length < 50) {
+          throw new Error('Insufficient text extracted. PDF may be image-based or encrypted.');
+        }
+        
+        return text;
       } catch (error) {
         console.error("❌ PDF EXTRACTION ERROR:", error);
-        throw new Error('Failed to extract text from PDF. Please try copying and pasting the text manually.');
+        throw new Error('Failed to extract text from PDF. The file may be image-based, encrypted, or corrupted. Please copy and paste the text manually.');
       }
     }
     
