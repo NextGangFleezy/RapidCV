@@ -1,6 +1,13 @@
 {
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "dist/public",
+  "installCommand": "npm ci --prefer-offline --no-audit --progress=false",
+  "framework": null,
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "nodejs20.x"
+    }
+  },
   "rewrites": [
     {
       "source": "/((?!api/).*)",
