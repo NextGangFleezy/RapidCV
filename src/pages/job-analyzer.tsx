@@ -89,40 +89,39 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
   // Analyze job mutation
   const analyzeMutation = useMutation({
     mutationFn: async ({ jobDesc, resume }: { jobDesc: string; resume: ResumeData }) => {
-      if (!user) {
-        // Offline analysis - basic keyword matching
-        return performOfflineAnalysis(jobDesc, resume);
-      }
-      
       // Check if we have a saved resume to use
       let resumeId = null;
-      if (selectedResumeId && resumes) {
+      if (user && selectedResumeId && resumes) {
         const selectedResume = resumes.find((r: any) => r.id.toString() === selectedResumeId);
         if (selectedResume) {
           resumeId = selectedResume.id;
         }
       }
 
-      if (resumeId) {
-        // Use API with saved resume
-        const response = await fetch("/api/job-analyses", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            jobDescription: jobDesc,
-            resumeId: resumeId
-          }),
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to analyze job posting');
+      if (user && resumeId) {
+        // Use API with saved resume for authenticated users
+        try {
+          const response = await fetch("/api/job-analyses", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jobDescription: jobDesc,
+              resumeId: resumeId
+            }),
+          });
+          
+          if (response.ok) {
+            return await response.json();
+          } else {
+            console.warn('API analysis failed, falling back to offline analysis');
+          }
+        } catch (error) {
+          console.warn('API analysis failed, falling back to offline analysis:', error);
         }
-        
-        return await response.json();
-      } else {
-        // Fallback to offline analysis with current form data
-        return performOfflineAnalysis(jobDesc, resume);
       }
+      
+      // Always fallback to offline analysis
+      return performOfflineAnalysis(jobDesc, resume);
     },
     onSuccess: (result) => {
       setAnalysis(result);
@@ -229,7 +228,7 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
       return;
     }
 
-    if (!resumeData.personalInfo.firstName && resumeData.skills.length === 0) {
+    if (!resumeData.personalInfo.firstName && resumeData.skills.length === 0 && !selectedResumeId) {
       toast({
         title: "Missing Resume Data",
         description: "Please select a resume or enter your information manually.",
