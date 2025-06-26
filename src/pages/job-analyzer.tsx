@@ -89,18 +89,22 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
   // Analyze job mutation
   const analyzeMutation = useMutation({
     mutationFn: async ({ jobDesc, resume }: { jobDesc: string; resume: ResumeData }) => {
+      console.log('Starting job analysis with:', { jobDesc: jobDesc.substring(0, 50) + '...', resume: resume.personalInfo });
+      
       // Check if we have a saved resume to use
       let resumeId = null;
-      if (user && selectedResumeId && resumes) {
+      if (user && selectedResumeId && Array.isArray(resumes)) {
         const selectedResume = resumes.find((r: any) => r.id.toString() === selectedResumeId);
         if (selectedResume) {
           resumeId = selectedResume.id;
+          console.log('Using saved resume ID:', resumeId);
         }
       }
 
       if (user && resumeId) {
         // Use API with saved resume for authenticated users
         try {
+          console.log('Attempting API analysis...');
           const response = await fetch("/api/job-analyses", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -111,7 +115,9 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
           });
           
           if (response.ok) {
-            return await response.json();
+            const result = await response.json();
+            console.log('API analysis successful:', result);
+            return result;
           } else {
             console.warn('API analysis failed, falling back to offline analysis');
           }
@@ -121,7 +127,10 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
       }
       
       // Always fallback to offline analysis
-      return performOfflineAnalysis(jobDesc, resume);
+      console.log('Performing offline analysis...');
+      const result = performOfflineAnalysis(jobDesc, resume);
+      console.log('Offline analysis result:', result);
+      return result;
     },
     onSuccess: (result) => {
       setAnalysis(result);
@@ -142,6 +151,17 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
   });
 
   const performOfflineAnalysis = (jobDesc: string, resume: ResumeData): JobAnalysis => {
+    if (!jobDesc.trim()) {
+      return {
+        matchScore: 0,
+        keySkills: [],
+        missingSkills: [],
+        strengths: [],
+        improvements: ["Please provide a job description to analyze"],
+        keywords: []
+      };
+    }
+
     // Extract keywords from job description
     const jobWords = jobDesc.toLowerCase()
       .split(/[\s,\.\!\?\;\:]+/)
@@ -228,15 +248,7 @@ export default function JobAnalyzer({ user }: JobAnalyzerProps) {
       return;
     }
 
-    if (!resumeData.personalInfo.firstName && resumeData.skills.length === 0 && !selectedResumeId) {
-      toast({
-        title: "Missing Resume Data",
-        description: "Please select a resume or enter your information manually.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    // Always allow analysis - the mutation will handle fallback logic
     setIsAnalyzing(true);
     try {
       await analyzeMutation.mutateAsync({
