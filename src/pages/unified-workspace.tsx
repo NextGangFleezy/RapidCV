@@ -356,44 +356,36 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
     }
   };
 
+  // File text extraction utility
   const extractTextFromFile = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
-      reader.onload = async (e) => {
-        const content = e.target?.result;
+      reader.onload = (event) => {
+        const result = event.target?.result;
         
-        try {
-          if (file.type === 'text/plain') {
-            resolve(content as string);
-          } else if (file.type === 'application/pdf') {
-            // For PDF files, we'll extract what we can from the text content
-            // In a production app, you'd use a PDF parsing library like pdf-parse
-            const text = content as string;
-            const lines = text.split('\n').filter(line => line.trim());
-            resolve(lines.join('\n'));
-          } else if (file.type.includes('word')) {
-            // For Word documents, extract text content
-            // In production, you'd use a library like mammoth.js
-            const text = content as string;
-            resolve(text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim());
-          } else {
-            resolve(content as string);
-          }
-        } catch (error) {
-          reject(error);
+        if (file.type === 'text/plain' || file.type === 'text/rtf') {
+          resolve(result as string);
+        } else if (file.type === 'application/pdf') {
+          // For PDF files, provide instructions for manual text extraction
+          resolve(`PDF file uploaded: ${file.name}\n\nNote: For best results with PDF files, please:\n1. Open your PDF file\n2. Select and copy the text content\n3. Paste it in the text area below\n\nThis ensures accurate text extraction and better resume parsing.`);
+        } else if (file.type.includes('word') || file.type.includes('officedocument')) {
+          // For Word docs, provide instructions for manual text extraction
+          resolve(`Word document uploaded: ${file.name}\n\nNote: For best results with Word documents, please:\n1. Open your Word document\n2. Select and copy the text content\n3. Paste it in the text area below\n\nThis ensures accurate text extraction and better resume parsing.`);
+        } else {
+          resolve(result as string);
         }
       };
       
-      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onerror = () => {
+        reject(new Error('Error reading file'));
+      };
       
-      if (file.type === 'text/plain' || file.type === 'text/rtf') {
-        reader.readAsText(file);
-      } else {
-        reader.readAsDataURL(file);
-      }
+      reader.readAsText(file);
     });
   };
+
+
 
   const parseResumeText = (text: string): ResumeData => {
     const lines = text.split('\n').map(line => line.trim()).filter(line => line);
