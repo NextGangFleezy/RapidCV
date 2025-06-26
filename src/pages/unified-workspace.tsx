@@ -162,13 +162,16 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
   // Save resume mutation
   const saveResumeMutation = useMutation({
     mutationFn: async (data: ResumeData) => {
-      return await apiRequest("/api/resumes", {
+      const response = await fetch("/api/resumes", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
           userId: user?.userData?.id || 1
         }),
       });
+      if (!response.ok) throw new Error('Failed to save resume');
+      return response.json();
     },
     onSuccess: () => {
       toast({

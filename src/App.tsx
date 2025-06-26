@@ -11,6 +11,7 @@ import CoverLetter from "@/pages/cover-letter";
 import JobAnalyzer from "@/pages/job-analyzer";
 import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
+import UnifiedWorkspace from "@/pages/unified-workspace";
 
 function Router() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -35,6 +36,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/workspace" component={() => <UnifiedWorkspace user={user} />} />
       <Route path="/builder" component={() => <ResumeBuilder user={user} />} />
       <Route path="/builder/:id" component={() => <ResumeBuilder user={user} />} />
       <Route path="/cover-letter" component={() => <CoverLetter user={user} />} />
