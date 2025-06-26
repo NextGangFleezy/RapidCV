@@ -9,6 +9,7 @@ import Landing from "@/pages/landing";
 import ResumeBuilder from "@/pages/resume-builder";
 import CoverLetter from "@/pages/cover-letter";
 import JobAnalyzer from "@/pages/job-analyzer";
+import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/builder/:id" component={() => <ResumeBuilder user={user} />} />
       <Route path="/cover-letter" component={() => <CoverLetter user={user} />} />
       <Route path="/job-analyzer" component={() => <JobAnalyzer user={user} />} />
+      <Route path="/admin" component={() => <Admin user={user} />} />
       <Route component={NotFound} />
     </Switch>
   );

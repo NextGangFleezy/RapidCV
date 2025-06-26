@@ -39,6 +39,15 @@ export interface IStorage {
   getUserJobAnalyses(userId: number): Promise<JobAnalysis[]>;
   createJobAnalysis(jobAnalysis: InsertJobAnalysis): Promise<JobAnalysis>;
   deleteJobAnalysis(id: number): Promise<boolean>;
+
+  // Admin functions
+  getAllUsers?(): Promise<User[]>;
+  getAllResumes?(): Promise<Resume[]>;
+  getAllCoverLetters?(): Promise<CoverLetter[]>;
+  getAllJobAnalyses?(): Promise<JobAnalysis[]>;
+  clearAllCoverLetters?(): Promise<void>;
+  clearAllJobAnalyses?(): Promise<void>;
+  clearAllResumes?(): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -180,6 +189,35 @@ export class MemStorage implements IStorage {
 
   async deleteJobAnalysis(id: number): Promise<boolean> {
     return this.jobAnalyses.delete(id);
+  }
+
+  // Admin functions
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async getAllResumes(): Promise<Resume[]> {
+    return Array.from(this.resumes.values());
+  }
+
+  async getAllCoverLetters(): Promise<CoverLetter[]> {
+    return Array.from(this.coverLetters.values());
+  }
+
+  async getAllJobAnalyses(): Promise<JobAnalysis[]> {
+    return Array.from(this.jobAnalyses.values());
+  }
+
+  async clearAllCoverLetters(): Promise<void> {
+    this.coverLetters.clear();
+  }
+
+  async clearAllJobAnalyses(): Promise<void> {
+    this.jobAnalyses.clear();
+  }
+
+  async clearAllResumes(): Promise<void> {
+    this.resumes.clear();
   }
 }
 
