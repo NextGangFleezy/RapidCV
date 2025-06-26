@@ -32,6 +32,10 @@ export default function Admin({ user }: AdminProps) {
   const [sqlResult, setSqlResult] = useState<any>(null);
   const [selectedUserId, setSelectedUserId] = useState("");
 
+  // Debug logging (can be removed after testing)
+  console.log("Admin page - user:", user);
+  console.log("Admin page - user exists:", !!user);
+
   // Check if user is admin (simplified for development - any logged in user can access)
   const isAdmin = !!user;
 
@@ -116,7 +120,8 @@ export default function Admin({ user }: AdminProps) {
             <div className="text-center">
               <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
-              <p className="text-gray-600">Please sign in to access the admin panel.</p>
+              <p className="text-gray-600 mb-4">Please sign in to access the admin panel.</p>
+              <p className="text-xs text-gray-500">Debug: User state is null. Check authentication.</p>
             </div>
           </CardContent>
         </Card>

@@ -18,6 +18,7 @@ function Router() {
 
   useEffect(() => {
     getCurrentUser().then((user) => {
+      console.log("App.tsx - Current user loaded:", user);
       setUser(user);
       setLoading(false);
     });
