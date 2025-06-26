@@ -8,6 +8,7 @@ import {
   insertJobAnalysisSchema 
 } from "@shared/schema";
 import { generateCoverLetter, analyzeJobMatch, generateResumeSuggestions } from "./services/anthropic";
+import { parseResumeWithAI, optimizeResumeForJob } from "./services/ai-parser";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Users
@@ -260,6 +261,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(suggestions);
     } catch (error) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // AI-powered resume parsing
+  app.post("/api/ai/parse-resume", async (req, res) => {
+    try {
+      const { resumeText } = req.body;
+      if (!resumeText || typeof resumeText !== 'string') {
+        return res.status(400).json({ message: "Resume text is required" });
+      }
+      
+      const parsedData = await parseResumeWithAI(resumeText);
+      res.json(parsedData);
+    } catch (error: unknown) {
+      console.error("AI parsing error:", error);
+      res.status(500).json({ 
+        message: "Failed to parse resume with AI",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // AI-powered job optimization
+  app.post("/api/ai/optimize-resume", async (req, res) => {
+    try {
+      const { resumeData, jobDescription } = req.body;
+      if (!resumeData || !jobDescription) {
+        return res.status(400).json({ message: "Resume data and job description are required" });
+      }
+      
+      const optimization = await optimizeResumeForJob({ resumeData, jobDescription });
+      res.json(optimization);
+    } catch (error: unknown) {
+      console.error("Resume optimization error:", error);
+      res.status(500).json({ 
+        message: "Failed to optimize resume",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
