@@ -992,6 +992,23 @@ ${name}`;
                         <Label htmlFor="resumeTextInput" className="text-base font-medium">
                           Copy & Paste Text
                         </Label>
+                        {uploadedFile && uploadedFile.type === 'application/pdf' && resumeText.trim() === "" && (
+                          <Alert className="border-blue-200 bg-blue-50 mb-3">
+                            <AlertCircle className="h-4 w-4 text-blue-600" />
+                            <AlertDescription className="text-blue-800">
+                              <strong>PDF uploaded: {uploadedFile.name}</strong>
+                              <br />
+                              Now copy text from your PDF and paste it below:
+                              <br />
+                              1. Open your PDF file
+                              <br />
+                              2. Select all text (Ctrl+A)
+                              <br />
+                              3. Copy (Ctrl+C) and paste below
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        
                         <p className="text-sm text-gray-600 mb-3">
                           Paste your resume text directly for parsing
                         </p>
@@ -1002,7 +1019,10 @@ ${name}`;
                             console.log("📝 TEXTAREA CHANGE - Length:", e.target.value.length);
                             setResumeText(e.target.value);
                           }}
-                          placeholder="Paste your resume text here..."
+                          placeholder={uploadedFile && uploadedFile.type === 'application/pdf' ? 
+                            "Paste your copied resume text here..." : 
+                            "Paste your resume text here..."
+                          }
                           rows={8}
                           className="w-full"
                         />
@@ -1053,7 +1073,7 @@ Graduated Summa Cum Laude, GPA: 3.9/4.0`;
                           <Button
                             onClick={handleTextImport}
                             disabled={isProcessingFile || !resumeText.trim()}
-                            className={!resumeText.trim() ? "opacity-50 cursor-not-allowed" : ""}
+                            className={`${!resumeText.trim() ? "opacity-50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white animate-pulse"}`}
                           >
                             {(() => {
                               console.log("🔘 BUTTON RENDER - Processing:", isProcessingFile, "Text length:", resumeText.length, "Trimmed:", resumeText.trim().length);
@@ -1072,6 +1092,15 @@ Graduated Summa Cum Laude, GPA: 3.9/4.0`;
                             )}
                           </Button>
                         </div>
+                        
+                        {resumeText.trim() && !isProcessingFile && (
+                          <Alert className="border-green-200 bg-green-50 mt-3">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <AlertDescription className="text-green-800">
+                              Text ready! Click "Import Text" above to parse your resume with AI.
+                            </AlertDescription>
+                          </Alert>
+                        )}
                       </div>
 
                       {isProcessingFile && (
