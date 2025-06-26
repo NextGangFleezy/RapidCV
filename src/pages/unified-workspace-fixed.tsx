@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, FileText, Briefcase, Mail, Upload, Download, Plus, Minus, Edit, Trash2, Target, Zap } from '@/lib/icons';
+import { AlertCircle, FileText, Briefcase, Mail, Upload, Download, Plus, Minus, Edit, Trash2, Target, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AuthUser } from '@/lib/auth';
 import { apiRequest } from '@/lib/queryClient';
@@ -142,15 +142,18 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
   // Save resume mutation
   const saveResumeMutation = useMutation({
     mutationFn: async (data: ResumeData) => {
-      return apiRequest('/api/resumes', 'POST', {
-        title: data.title,
-        personalInfo: data.personalInfo,
-        summary: data.summary,
-        experience: data.experience,
-        education: data.education,
-        skills: data.skills,
-        projects: data.projects,
-        templateId: data.templateId
+      return apiRequest('/api/resumes', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: data.title,
+          personalInfo: data.personalInfo,
+          summary: data.summary,
+          experience: data.experience,
+          education: data.education,
+          skills: data.skills,
+          projects: data.projects,
+          templateId: data.templateId
+        })
       });
     },
     onSuccess: () => {
@@ -165,12 +168,15 @@ export default function UnifiedWorkspace({ user }: UnifiedWorkspaceProps) {
   // Job analysis mutation
   const analyzeMutation = useMutation({
     mutationFn: async ({ jobDesc, resume }: { jobDesc: string; resume: ResumeData }) => {
-      return apiRequest('/api/job-analyses', 'POST', {
-        jobDescription: jobDesc,
-        resumeData: resume
+      return apiRequest('/api/job-analyses', {
+        method: 'POST',
+        body: JSON.stringify({
+          jobDescription: jobDesc,
+          resumeData: resume
+        })
       });
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data) => {
       setJobAnalysis(data);
       toast({ title: "Job analysis completed!" });
     },
