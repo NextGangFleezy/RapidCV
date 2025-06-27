@@ -21,12 +21,15 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
     
     try {
       const user = await signInWithGoogle();
-      onSignIn(user);
-      onOpenChange(false);
-    } catch (error) {
+      // If user is returned, it means we got a redirect result
+      if (user) {
+        onSignIn(user);
+        onOpenChange(false);
+      }
+      // If null, redirect is happening and page will reload
+    } catch (error: any) {
       console.error('Sign-in error:', error);
       setError('Failed to sign in. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };

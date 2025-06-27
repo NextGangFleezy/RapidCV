@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-api-key",
@@ -28,12 +28,30 @@ googleProvider.addScope('email');
 googleProvider.addScope('profile');
 
 // Authentication functions
-export const signInWithGoogle = async (): Promise<FirebaseUser> => {
+export const signInWithGoogle = async (): Promise<FirebaseUser | null> => {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
+    // First, try to get any pending redirect result
+    const redirectResult = await getRedirectResult(auth);
+    if (redirectResult?.user) {
+      return redirectResult.user;
+    }
+    
+    // If no redirect result, initiate redirect
+    await signInWithRedirect(auth, googleProvider);
+    return null; // Will redirect away from page
   } catch (error) {
     console.error('Google sign-in error:', error);
+    throw error;
+  }
+};
+
+// Handle redirect result on page load
+export const handleAuthRedirect = async (): Promise<FirebaseUser | null> => {
+  try {
+    const result = await getRedirectResult(auth);
+    return result?.user || null;
+  } catch (error) {
+    console.error('Auth redirect error:', error);
     throw error;
   }
 };
