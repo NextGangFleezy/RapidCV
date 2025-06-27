@@ -37,7 +37,7 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
         <DialogHeader>
           <DialogTitle>Welcome to RapidCV</DialogTitle>
           <DialogDescription>
-            Sign in to start building your professional resume with AI-powered features.
+            Sign in to get 2 free resume builds with upload feature. Upgrade for unlimited access and AI tools.
           </DialogDescription>
         </DialogHeader>
         
@@ -79,7 +79,7 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
           <div className="text-xs text-gray-500 text-center">
             By signing in, you agree to our Terms of Service and Privacy Policy.
             <br />
-            Start your 14-day free trial - no credit card required.
+            Get 2 free resume builds - no credit card required.
           </div>
         </div>
       </DialogContent>

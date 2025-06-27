@@ -65,13 +65,13 @@ export default function Landing({ user, onUserChange }: LandingProps) {
                 className="bg-primary text-white px-8 py-4 text-lg hover:bg-blue-700"
                 onClick={handleStartTrial}
               >
-                Start Your Free Trial
+                Get 2 Free Resumes
               </Button>
               <Button variant="outline" size="lg" className="px-8 py-4 text-lg">
                 View Our Plans
               </Button>
             </div>
-            <p className="text-sm text-gray-500 mt-4">Start your 14-day free trial • No credit card required</p>
+            <p className="text-sm text-gray-500 mt-4">2 free resume builds included • Upgrade for AI features</p>
           </div>
 
           {/* Hero Preview */}
@@ -474,24 +474,65 @@ export default function Landing({ user, onUserChange }: LandingProps) {
               Simple, Transparent Pricing
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Professional resume building with AI-powered features. No hidden fees, cancel anytime.
+              Start with 2 free resume builds, then upgrade for unlimited access and AI features. No hidden fees, cancel anytime.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-8 max-w-2xl mx-auto">
-            {/* Pro Plan - Only Plan */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free Plan */}
+            <Card className="border-2 border-gray-200 hover:border-blue-300 transition-all">
+              <CardContent className="p-8">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
+                  <div className="text-4xl font-bold text-gray-900 mb-2">$0</div>
+                  <p className="text-gray-600">Get started with basic features</p>
+                </div>
+                
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">2 professional resume builds</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">PDF upload and parsing</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">Basic PDF export</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">3 professional templates</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">Real-time preview</span>
+                  </li>
+                </ul>
+                
+                <Button 
+                  className="w-full bg-gray-900 text-white hover:bg-gray-800"
+                  onClick={handleStartTrial}
+                >
+                  Get Started Free
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Pro Plan */}
             <Card className="border-2 border-primary shadow-lg relative">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-primary text-white px-4 py-1">Professional Plan</Badge>
+                <Badge className="bg-primary text-white px-4 py-1">Most Popular</Badge>
               </div>
               <CardContent className="p-8">
                 <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">RapidCV Pro</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
                   <div className="text-4xl font-bold text-primary mb-2">
                     $5-15
                     <span className="text-lg text-gray-600 font-normal">/month</span>
                   </div>
-                  <p className="text-gray-600">Complete resume building solution</p>
+                  <p className="text-gray-600">For serious job seekers</p>
                 </div>
                 
                 <ul className="space-y-4 mb-8">
@@ -525,10 +566,10 @@ export default function Landing({ user, onUserChange }: LandingProps) {
                   </li>
                 </ul>
                 
-                <Button className="w-full bg-primary text-white hover:bg-blue-700 mb-4">
-                  Start Your 14-Day Free Trial
+                <Button className="w-full bg-primary text-white hover:bg-blue-700">
+                  Upgrade to Pro
                 </Button>
-                <p className="text-center text-sm text-gray-500">No credit card required • Cancel anytime</p>
+                <p className="text-center text-sm text-gray-500 mt-2">Cancel anytime</p>
               </CardContent>
             </Card>
           </div>
@@ -550,13 +591,13 @@ export default function Landing({ user, onUserChange }: LandingProps) {
               className="bg-white text-primary px-8 py-4 text-lg hover:bg-gray-50"
               onClick={handleStartTrial}
             >
-              Start Your Free Trial
+              Get 2 Free Resumes
             </Button>
             <Button variant="outline" size="lg" className="border-white text-white px-8 py-4 text-lg hover:bg-white hover:text-primary">
               View Features
             </Button>
           </div>
-          <p className="text-sm text-blue-100 mt-6">✓ 14-day free trial  ✓ No credit card required  ✓ Cancel anytime</p>
+          <p className="text-sm text-blue-100 mt-6">✓ 2 free resume builds  ✓ No credit card required  ✓ Cancel anytime</p>
         </div>
       </section>
 
