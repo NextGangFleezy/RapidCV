@@ -29,29 +29,54 @@ googleProvider.addScope('profile');
 
 // Authentication functions
 export const signInWithGoogle = async (): Promise<FirebaseUser | null> => {
+  console.log('🚀 signInWithGoogle called');
   try {
     // First, try to get any pending redirect result
+    console.log('🔍 Checking for redirect result...');
     const redirectResult = await getRedirectResult(auth);
+    console.log('📥 Redirect result:', redirectResult);
+    
     if (redirectResult?.user) {
+      console.log('✅ Found user from redirect:', redirectResult.user.email);
       return redirectResult.user;
     }
     
     // If no redirect result, initiate redirect
+    console.log('🔄 No redirect result, initiating redirect...');
     await signInWithRedirect(auth, googleProvider);
+    console.log('🔄 Redirect initiated, page will reload');
     return null; // Will redirect away from page
   } catch (error) {
-    console.error('Google sign-in error:', error);
+    console.error('❌ Google sign-in error:', error);
+    console.error('❌ Error details:', {
+      code: error.code,
+      message: error.message,
+      stack: error.stack
+    });
     throw error;
   }
 };
 
 // Handle redirect result on page load
 export const handleAuthRedirect = async (): Promise<FirebaseUser | null> => {
+  console.log('🔄 handleAuthRedirect called on page load');
   try {
     const result = await getRedirectResult(auth);
+    console.log('📥 Page load redirect result:', result);
+    
+    if (result?.user) {
+      console.log('✅ User authenticated via redirect:', result.user.email);
+    } else {
+      console.log('ℹ️ No redirect authentication result');
+    }
+    
     return result?.user || null;
   } catch (error) {
-    console.error('Auth redirect error:', error);
+    console.error('❌ Auth redirect error:', error);
+    console.error('❌ Redirect error details:', {
+      code: error.code,
+      message: error.message
+    });
     throw error;
   }
 };

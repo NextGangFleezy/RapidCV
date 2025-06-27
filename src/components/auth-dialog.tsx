@@ -16,20 +16,29 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
   const [error, setError] = useState<string | null>(null);
 
   const handleGoogleSignIn = async () => {
+    console.log('🔘 Auth Dialog: Google sign-in button clicked');
     setIsLoading(true);
     setError(null);
     
     try {
+      console.log('🔘 Auth Dialog: Calling signInWithGoogle...');
       const user = await signInWithGoogle();
+      console.log('🔘 Auth Dialog: signInWithGoogle returned:', user);
+      
       // If user is returned, it means we got a redirect result
       if (user) {
+        console.log('🔘 Auth Dialog: User found, calling onSignIn callback');
         onSignIn(user);
         onOpenChange(false);
+      } else {
+        console.log('🔘 Auth Dialog: No user returned, redirect should be happening');
       }
       // If null, redirect is happening and page will reload
     } catch (error: any) {
-      console.error('Sign-in error:', error);
-      setError('Failed to sign in. Please try again.');
+      console.error('🔘 Auth Dialog: Sign-in error:', error);
+      console.error('🔘 Auth Dialog: Error code:', error?.code);
+      console.error('🔘 Auth Dialog: Error message:', error?.message);
+      setError(`Failed to sign in: ${error?.message || 'Unknown error'}`);
       setIsLoading(false);
     }
   };

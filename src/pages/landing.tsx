@@ -3,6 +3,7 @@ import { User as FirebaseUser } from "firebase/auth";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import AuthDialog from "@/components/auth-dialog";
+import FirebaseDebug from "@/components/firebase-debug";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

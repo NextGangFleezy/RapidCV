@@ -17,6 +17,7 @@ export default function Navigation({ user, onUserChange }: NavigationProps) {
   const [authOpen, setAuthOpen] = useState(false);
 
   const handleGoogleSignIn = (signedInUser: FirebaseUser) => {
+    console.log('🔘 Navigation: handleGoogleSignIn called with user:', signedInUser?.email);
     onUserChange?.(signedInUser);
     toast({
       title: "Welcome!",
