@@ -545,11 +545,13 @@ export default function Landing({ user, onUserChange }: LandingProps) {
             Join thousands of professionals who have landed their dream jobs with RapidCV. Start building your standout resume today.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/builder">
-              <Button size="lg" className="bg-white text-primary px-8 py-4 text-lg hover:bg-gray-50">
-                Start Your Free Trial
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="bg-white text-primary px-8 py-4 text-lg hover:bg-gray-50"
+              onClick={handleStartTrial}
+            >
+              Start Your Free Trial
+            </Button>
             <Button variant="outline" size="lg" className="border-white text-white px-8 py-4 text-lg hover:bg-white hover:text-primary">
               View Features
             </Button>
@@ -600,6 +602,12 @@ export default function Landing({ user, onUserChange }: LandingProps) {
           </div>
         </div>
       </footer>
+      
+      <AuthDialog 
+        open={authOpen} 
+        onOpenChange={setAuthOpen}
+        onSignIn={handleGoogleSignIn}
+      />
     </div>
   );
 }
