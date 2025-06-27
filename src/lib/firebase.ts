@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-api-key",
@@ -21,4 +21,34 @@ console.log("Firebase config:", {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+// Google Auth Provider
+const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+
+// Authentication functions
+export const signInWithGoogle = async (): Promise<FirebaseUser> => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (error) {
+    console.error('Google sign-in error:', error);
+    throw error;
+  }
+};
+
+export const signOutUser = async (): Promise<void> => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error('Sign out error:', error);
+    throw error;
+  }
+};
+
+export const onAuthStateChange = (callback: (user: FirebaseUser | null) => void) => {
+  return onAuthStateChanged(auth, callback);
+};
+
 export default app;
