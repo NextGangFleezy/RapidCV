@@ -440,6 +440,111 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Start for free and upgrade when you need more features. No hidden fees, cancel anytime.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free Plan */}
+            <Card className="border-2 border-gray-200 hover:border-blue-300 transition-all">
+              <CardContent className="p-8">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
+                  <div className="text-4xl font-bold text-gray-900 mb-2">$0</div>
+                  <p className="text-gray-600">Perfect for getting started</p>
+                </div>
+                
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">Create 1 professional resume</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">Basic PDF export</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">3 professional templates</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">Real-time preview</span>
+                  </li>
+                </ul>
+                
+                <Link href="/builder" className="block">
+                  <Button className="w-full bg-gray-900 text-white hover:bg-gray-800">
+                    Get Started Free
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Pro Plan */}
+            <Card className="border-2 border-primary shadow-lg relative">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-primary text-white px-4 py-1">Most Popular</Badge>
+              </div>
+              <CardContent className="p-8">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
+                  <div className="text-4xl font-bold text-primary mb-2">
+                    $5-15
+                    <span className="text-lg text-gray-600 font-normal">/month</span>
+                  </div>
+                  <p className="text-gray-600">For serious job seekers</p>
+                </div>
+                
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">Unlimited professional resumes</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">AI-powered content suggestions</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">AI cover letter generator</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">Job match analyzer</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">Full dashboard access</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">All premium templates</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-success mr-3" />
+                    <span className="text-gray-700">Priority support</span>
+                  </li>
+                </ul>
+                
+                <Button className="w-full bg-primary text-white hover:bg-blue-700">
+                  Start Pro Trial
+                </Button>
+                <p className="text-center text-sm text-gray-500 mt-2">14-day free trial</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-br from-primary to-purple-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
