@@ -19,6 +19,20 @@ function Router() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Handle redirect result on app load
+    const handleRedirectOnLoad = async () => {
+      try {
+        const redirectUser = await handleAuthRedirect();
+        if (redirectUser) {
+          setUser(redirectUser);
+        }
+      } catch (error) {
+        console.error("Auth redirect handling error:", error);
+      }
+    };
+
+    handleRedirectOnLoad();
+
     const unsubscribe = onAuthStateChange((user) => {
       console.log("App.tsx - Current user loaded:", user);
       setUser(user);
