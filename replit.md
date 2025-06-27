@@ -125,6 +125,7 @@ RapidCV is a modern, full-stack resume builder application that enables users to
 3. Static assets served from Vercel CDN
 
 ## Changelog
+- June 26, 2025: Updated business model to freemium with 2 free basic resume builds + upload, paid AI features ($5-15/mo)
 - June 26, 2025: Implemented Google sign-in/sign-up with Firebase authentication system for user acquisition and trial management
 - June 26, 2025: Added freemium model pricing section to landing page with clear Free ($0) and Pro ($5-15/mo) tier distinction
 - June 26, 2025: COMPLETELY RESOLVED all runtime issues - corrected Vercel runtime configuration, fixed TypeScript errors, optimized build process
@@ -141,3 +142,4 @@ RapidCV is a modern, full-stack resume builder application that enables users to
 - **Dependency Management**: Keep all package.json files and dependencies centralized in the root folder
 - **Communication Style**: Simple, everyday language
 - **Admin Features**: Created comprehensive admin dashboard with direct backend tool access, including data management buttons, API testing, system monitoring, and one-click administrative functions
+- **Business Model**: Freemium with 2 free basic resume builds (with upload), then paid subscription ($5-15/mo) for unlimited resumes and AI features (cover letters, job analysis, content suggestions)

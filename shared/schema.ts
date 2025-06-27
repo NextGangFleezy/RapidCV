@@ -8,6 +8,9 @@ export const users = pgTable("users", {
   firebaseUid: text("firebase_uid").unique(),
   firstName: text("first_name"),
   lastName: text("last_name"),
+  subscriptionTier: text("subscription_tier").notNull().default("free"), // 'free' or 'pro'
+  resumeBuildsUsed: integer("resume_builds_used").notNull().default(0),
+  maxResumeBuilds: integer("max_resume_builds").notNull().default(2), // 2 for free, unlimited for pro
   createdAt: timestamp("created_at").defaultNow(),
 });
 

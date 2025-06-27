@@ -94,7 +94,7 @@ export default function Navigation({ user, onUserChange }: NavigationProps) {
                   className="bg-primary text-white hover:bg-blue-700"
                   onClick={() => setAuthOpen(true)}
                 >
-                  Start Free Trial
+                  Get 2 Free Resumes
                 </Button>
               </>
             )}

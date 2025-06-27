@@ -20,6 +20,8 @@ export interface IStorage {
   getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  canCreateResume(userId: number): Promise<boolean>;
+  incrementResumeUsage(userId: number): Promise<void>;
 
   // Resumes
   getResume(id: number): Promise<Resume | undefined>;
@@ -92,6 +94,9 @@ export class MemStorage implements IStorage {
       firstName: insertUser.firstName || null,
       lastName: insertUser.lastName || null,
       firebaseUid: insertUser.firebaseUid || null,
+      subscriptionTier: insertUser.subscriptionTier || "free",
+      resumeBuildsUsed: insertUser.resumeBuildsUsed || 0,
+      maxResumeBuilds: insertUser.maxResumeBuilds || 2,
       createdAt: new Date(),
     };
     this.users.set(id, user);
