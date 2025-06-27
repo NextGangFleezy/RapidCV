@@ -1,5 +1,8 @@
 import Navigation from "@/components/navigation";
+import { User as FirebaseUser } from "firebase/auth";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import AuthDialog from "@/components/auth-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,10 +22,31 @@ import {
   Github
 } from "@/lib/icons";
 
-export default function Landing() {
+interface LandingProps {
+  user?: FirebaseUser | null;
+  onUserChange?: (user: FirebaseUser | null) => void;
+}
+
+export default function Landing({ user, onUserChange }: LandingProps) {
+  const [authOpen, setAuthOpen] = useState(false);
+
+  const handleGoogleSignIn = (signedInUser: FirebaseUser) => {
+    onUserChange?.(signedInUser);
+  };
+
+  const handleStartTrial = () => {
+    if (user) {
+      // User is signed in, redirect to builder
+      window.location.href = "/builder";
+    } else {
+      // User not signed in, show auth dialog
+      setAuthOpen(true);
+    }
+  };
+
   return (
     <div className="bg-gray-50 font-sans">
-      <Navigation />
+      <Navigation user={user} onUserChange={onUserChange} />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-50 to-purple-50 py-20">
@@ -36,11 +60,13 @@ export default function Landing() {
               Create professional resumes with AI-powered suggestions, beautiful templates, and real-time preview. Land your dream job faster with RapidCV.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/builder">
-                <Button size="lg" className="bg-primary text-white px-8 py-4 text-lg hover:bg-blue-700">
-                  Start Your Free Trial
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                className="bg-primary text-white px-8 py-4 text-lg hover:bg-blue-700"
+                onClick={handleStartTrial}
+              >
+                Start Your Free Trial
+              </Button>
               <Button variant="outline" size="lg" className="px-8 py-4 text-lg">
                 View Our Plans
               </Button>

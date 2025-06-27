@@ -4,7 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
-import { getCurrentUser, type AuthUser } from "./lib/auth";
+import { onAuthStateChange } from "./lib/firebase";
+import { User as FirebaseUser } from "firebase/auth";
 import Landing from "@/pages/landing";
 import ResumeBuilder from "@/pages/resume-builder";
 import CoverLetter from "@/pages/cover-letter";
@@ -14,15 +15,17 @@ import NotFound from "@/pages/not-found";
 import UnifiedWorkspace from "@/pages/unified-workspace";
 
 function Router() {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getCurrentUser().then((user) => {
+    const unsubscribe = onAuthStateChange((user) => {
       console.log("App.tsx - Current user loaded:", user);
       setUser(user);
       setLoading(false);
     });
+
+    return () => unsubscribe();
   }, []);
 
   if (loading) {
@@ -35,7 +38,7 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/" component={() => <Landing user={user} onUserChange={setUser} />} />
       <Route path="/workspace" component={() => <UnifiedWorkspace user={user} />} />
       <Route path="/builder" component={() => <ResumeBuilder user={user} />} />
       <Route path="/builder/:id" component={() => <ResumeBuilder user={user} />} />
