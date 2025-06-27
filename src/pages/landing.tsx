@@ -650,6 +650,11 @@ export default function Landing({ user, onUserChange }: LandingProps) {
         onOpenChange={setAuthOpen}
         onSignIn={handleGoogleSignIn}
       />
+      
+      {/* Debug Panel - Remove in production */}
+      <div className="mt-16 mb-8">
+        <FirebaseDebug />
+      </div>
     </div>
   );
 }
