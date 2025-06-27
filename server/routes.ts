@@ -75,7 +75,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/resumes", async (req: Request, res: Response) => {
     try {
       const resumeData = insertResumeSchema.parse(req.body);
+      
+      // Check if user can create a new resume (usage limits)
+      const canCreate = await storage.canCreateResume(resumeData.userId);
+      if (!canCreate) {
+        const user = await storage.getUser(resumeData.userId);
+        const remainingBuilds = user ? user.maxResumeBuilds - user.resumeBuildsUsed : 0;
+        
+        return res.status(403).json({ 
+          message: "Resume build limit reached. Upgrade to Pro for unlimited resumes.",
+          remainingBuilds,
+          subscriptionTier: user?.subscriptionTier || "free"
+        });
+      }
+      
       const resume = await storage.createResume(resumeData);
+      
+      // Increment usage counter for free users
+      const user = await storage.getUser(resumeData.userId);
+      if (user?.subscriptionTier === "free") {
+        await storage.incrementResumeUsage(resumeData.userId);
+      }
+      
       res.status(201).json(resume);
     } catch (error) {
       res.status(400).json({ message: error instanceof Error ? error.message : 'Unknown error' });
@@ -147,10 +168,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/cover-letters", async (req: Request, res: Response) => {
     try {
-      const { jobTitle, companyName, jobDescription, tone, resumeId } = req.body;
+      const { jobTitle, companyName, jobDescription, tone, resumeId, userId } = req.body;
       
-      if (!jobTitle || !companyName || !jobDescription) {
-        return res.status(400).json({ message: "Job title, company name, and job description are required" });
+      if (!jobTitle || !companyName || !jobDescription || !userId) {
+        return res.status(400).json({ message: "Job title, company name, job description, and user ID are required" });
+      }
+
+      // Check if user has Pro subscription for AI features
+      const user = await storage.getUser(userId);
+      if (!user || user.subscriptionTier !== "pro") {
+        return res.status(403).json({ 
+          message: "AI cover letter generation requires Pro subscription",
+          feature: "cover-letter-generation",
+          subscriptionTier: user?.subscriptionTier || "free"
+        });
       }
 
       // Get resume data if resumeId provided
@@ -168,7 +199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const coverLetterData = insertCoverLetterSchema.parse({
-        userId: 1, // Default user for demo
+        userId,
         jobTitle,
         companyName,
         content: coverLetterContent,
@@ -217,10 +248,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/job-analyses", async (req: Request, res: Response) => {
     try {
-      const { jobDescription, resumeData } = req.body;
+      const { jobDescription, resumeData, userId } = req.body;
       
-      if (!jobDescription || !resumeData) {
-        return res.status(400).json({ message: "Job description and resume data are required" });
+      if (!jobDescription || !resumeData || !userId) {
+        return res.status(400).json({ message: "Job description, resume data, and user ID are required" });
+      }
+
+      // Check if user has Pro subscription for AI features
+      const user = await storage.getUser(userId);
+      if (!user || user.subscriptionTier !== "pro") {
+        return res.status(403).json({ 
+          message: "AI job analysis requires Pro subscription",
+          feature: "job-analysis",
+          subscriptionTier: user?.subscriptionTier || "free"
+        });
       }
 
       const analysis = await analyzeJobMatch({
@@ -229,23 +270,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const jobAnalysisData = insertJobAnalysisSchema.parse({
-        userId: 1, // Default user for demo
+        userId,
         jobDescription,
         matchScore: analysis.matchScore,
-        recommendations: analysis.improvements,
-        optimizedSummary: analysis.optimizedSummary
+        recommendations: analysis.improvements
       });
 
       const jobAnalysis = await storage.createJobAnalysis(jobAnalysisData);
       res.status(201).json({
         ...jobAnalysis,
         matchScore: analysis.matchScore,
-        keySkills: analysis.keySkills,
         missingSkills: analysis.missingSkills,
         strengths: analysis.strengths,
-        improvements: analysis.improvements,
-        keywords: analysis.keywords,
-        optimizedSummary: analysis.optimizedSummary
+        improvements: analysis.improvements
       });
     } catch (error) {
       console.error('Job analysis error:', error);
@@ -264,6 +301,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Job analysis not found" });
       }
       res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
+  // User subscription status endpoint
+  app.get("/api/users/:id/subscription", async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const canCreateResume = await storage.canCreateResume(userId);
+      const remainingBuilds = user.maxResumeBuilds - user.resumeBuildsUsed;
+      
+      res.json({
+        subscriptionTier: user.subscriptionTier,
+        resumeBuildsUsed: user.resumeBuildsUsed,
+        maxResumeBuilds: user.maxResumeBuilds,
+        remainingBuilds,
+        canCreateResume,
+        hasAIAccess: user.subscriptionTier === "pro"
+      });
     } catch (error) {
       res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }

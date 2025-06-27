@@ -240,6 +240,30 @@ export class MemStorage implements IStorage {
   async clearAllResumes(): Promise<void> {
     this.resumes.clear();
   }
+
+  // Usage tracking methods
+  async canCreateResume(userId: number): Promise<boolean> {
+    const user = await this.getUser(userId);
+    if (!user) return false;
+    
+    // Pro users have unlimited access
+    if (user.subscriptionTier === "pro") return true;
+    
+    // Free users are limited to maxResumeBuilds
+    return user.resumeBuildsUsed < user.maxResumeBuilds;
+  }
+
+  async incrementResumeUsage(userId: number): Promise<void> {
+    const user = await this.getUser(userId);
+    if (!user) return;
+    
+    const updatedUser = {
+      ...user,
+      resumeBuildsUsed: user.resumeBuildsUsed + 1
+    };
+    
+    this.users.set(userId, updatedUser);
+  }
 }
 
 export const storage = new MemStorage();
