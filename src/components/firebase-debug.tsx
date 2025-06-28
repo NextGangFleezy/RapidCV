@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth, signInWithGoogle, handleAuthRedirect } from "@/lib/firebase";
+import { auth, signInWithGoogle, handleAuthRedirect, signInWithEmail, signUpWithEmail } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,19 +42,48 @@ export default function FirebaseDebug() {
     return () => unsubscribe();
   }, []);
 
-  const testSignIn = async () => {
+  const testGoogleSignIn = async () => {
     setIsLoading(true);
-    addLog("Testing sign-in flow...");
+    addLog("Testing Google sign-in flow...");
     
     try {
       const result = await signInWithGoogle();
       if (result) {
-        addLog(`Sign-in successful: ${result.email}`);
+        addLog(`Google sign-in successful: ${result.email}`);
       } else {
-        addLog("Sign-in initiated redirect");
+        addLog("Google sign-in initiated redirect");
       }
     } catch (error: any) {
-      addLog(`Sign-in error: ${error.code} - ${error.message}`);
+      addLog(`Google sign-in error: ${error.code} - ${error.message}`);
+    }
+    
+    setIsLoading(false);
+  };
+
+  const testEmailAuth = async () => {
+    setIsLoading(true);
+    const testEmail = "test@example.com";
+    const testPassword = "test123456";
+    
+    addLog("Testing email authentication...");
+    
+    try {
+      // Try sign up first
+      addLog(`Attempting sign-up with ${testEmail}`);
+      const signUpResult = await signUpWithEmail(testEmail, testPassword);
+      addLog(`Sign-up successful: ${signUpResult.email}`);
+    } catch (error: any) {
+      if (error.code === 'auth/email-already-in-use') {
+        addLog("Email already exists, trying sign-in...");
+        try {
+          const signInResult = await signInWithEmail(testEmail, testPassword);
+          addLog(`Sign-in successful: ${signInResult.email}`);
+        } catch (signInError: any) {
+          addLog(`Sign-in error: ${signInError.code} - ${signInError.message}`);
+        }
+      } else {
+        addLog(`Sign-up error: ${error.code} - ${error.message}`);
+      }
     }
     
     setIsLoading(false);
@@ -102,8 +131,11 @@ export default function FirebaseDebug() {
           <div className="flex justify-between items-center mb-2">
             <h3 className="font-semibold">Test Actions</h3>
             <div className="space-x-2">
-              <Button onClick={testSignIn} disabled={isLoading} size="sm">
-                {isLoading ? "Testing..." : "Test Sign In"}
+              <Button onClick={testGoogleSignIn} disabled={isLoading} size="sm">
+                {isLoading ? "Testing..." : "Test Google"}
+              </Button>
+              <Button onClick={testEmailAuth} disabled={isLoading} size="sm">
+                {isLoading ? "Testing..." : "Test Email"}
               </Button>
               <Button onClick={clearLogs} variant="outline" size="sm">
                 Clear Logs

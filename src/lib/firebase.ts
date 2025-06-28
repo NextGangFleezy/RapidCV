@@ -1,5 +1,15 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithRedirect, 
+  getRedirectResult, 
+  signOut, 
+  onAuthStateChanged, 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  User as FirebaseUser 
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-api-key",
@@ -74,6 +84,39 @@ export const handleAuthRedirect = async (): Promise<FirebaseUser | null> => {
   } catch (error) {
     console.error('❌ Auth redirect error:', error);
     console.error('❌ Redirect error details:', {
+      code: error.code,
+      message: error.message
+    });
+    throw error;
+  }
+};
+
+// Email/Password Authentication
+export const signUpWithEmail = async (email: string, password: string): Promise<FirebaseUser> => {
+  console.log('📧 Email sign-up attempt for:', email);
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    console.log('✅ Email sign-up successful:', result.user.email);
+    return result.user;
+  } catch (error: any) {
+    console.error('❌ Email sign-up error:', error);
+    console.error('❌ Error details:', {
+      code: error.code,
+      message: error.message
+    });
+    throw error;
+  }
+};
+
+export const signInWithEmail = async (email: string, password: string): Promise<FirebaseUser> => {
+  console.log('📧 Email sign-in attempt for:', email);
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    console.log('✅ Email sign-in successful:', result.user.email);
+    return result.user;
+  } catch (error: any) {
+    console.error('❌ Email sign-in error:', error);
+    console.error('❌ Error details:', {
       code: error.code,
       message: error.message
     });

@@ -125,6 +125,9 @@ RapidCV is a modern, full-stack resume builder application that enables users to
 3. Static assets served from Vercel CDN
 
 ## Changelog
+- June 27, 2025: Implemented dual authentication system with email/password and Google sign-in options to resolve Firebase redirect issues
+- June 27, 2025: Added comprehensive authentication debugging tools and user-friendly error handling
+- June 27, 2025: Fixed Firebase "invalid-continue-uri" error by providing fallback email authentication
 - June 26, 2025: Updated business model to freemium with 2 free basic resume builds + upload, paid AI features ($5-15/mo)
 - June 26, 2025: Implemented Google sign-in/sign-up with Firebase authentication system for user acquisition and trial management
 - June 26, 2025: Added freemium model pricing section to landing page with clear Free ($0) and Pro ($5-15/mo) tier distinction
