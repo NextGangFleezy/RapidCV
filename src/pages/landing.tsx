@@ -226,131 +226,49 @@ export default function Landing({ user, onUserChange }: LandingProps) {
         </div>
       </section>
 
-      {/* Resume Builder Interface Demo */}
+      {/* How It Works */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              See It In Action
+              How RapidCV Works
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our intuitive interface makes resume building effortless. Fill out the form and watch your professional resume come to life in real-time.
+              Build professional resumes in three simple steps. No design experience needed.
             </p>
           </div>
 
-          <Card className="shadow-xl overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
-              {/* Form Section */}
-              <div className="p-8 border-r border-gray-200">
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900">Resume Builder</h3>
-                  <Button className="bg-primary text-white hover:bg-blue-700">
-                    Save Progress
-                  </Button>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                      <Input defaultValue="Sarah" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                      <Input defaultValue="Johnson" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Professional Title</label>
-                    <Input defaultValue="Senior Software Engineer" />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                      <Input type="email" defaultValue="sarah.johnson@email.com" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                      <Input type="tel" defaultValue="(555) 123-4567" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Professional Summary</label>
-                    <Textarea 
-                      rows={4} 
-                      defaultValue="Experienced software engineer with 5+ years developing scalable web applications. Proven track record of leading cross-functional teams and delivering high-quality solutions."
-                    />
-                    <div className="mt-2 flex items-center text-sm text-gray-500">
-                      <Lightbulb className="w-4 h-4 mr-1" />
-                      AI Suggestion Available
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8 flex justify-between">
-                  <Button variant="outline">Previous</Button>
-                  <Button className="bg-primary text-white hover:bg-blue-700">Next Section</Button>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl font-bold text-white">1</span>
               </div>
-
-              {/* Live Preview Section */}
-              <div className="p-8 bg-gray-50">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Live Preview</h3>
-                  <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Download className="w-4 h-4" />
-                    </Button>
-                    <Select defaultValue="professional">
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="professional">Professional</SelectItem>
-                        <SelectItem value="modern">Modern</SelectItem>
-                        <SelectItem value="creative">Creative</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Resume Preview */}
-                <Card className="shadow-sm transform scale-90 origin-top">
-                  <CardContent className="p-6 space-y-4">
-                    <div className="border-b border-gray-200 pb-4">
-                      <h2 className="text-2xl font-bold text-gray-900">Sarah Johnson</h2>
-                      <p className="text-lg text-gray-600">Senior Software Engineer</p>
-                      <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500">
-                        <span>sarah.johnson@email.com</span>
-                        <span>(555) 123-4567</span>
-                        <span>San Francisco, CA</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-2">Professional Summary</h3>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        Experienced software engineer with 5+ years developing scalable web applications. Proven track record of leading cross-functional teams and delivering high-quality solutions.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-2">Skills</h3>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary">JavaScript</Badge>
-                        <Badge variant="secondary">React</Badge>
-                        <Badge variant="secondary">Node.js</Badge>
-                        <Badge variant="secondary">Python</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Enter Your Information</h3>
+              <p className="text-gray-600">
+                Fill out our guided forms with your work experience, education, and skills. Our system walks you through each section step-by-step.
+              </p>
             </div>
-          </Card>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl font-bold text-white">2</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Choose Your Template</h3>
+              <p className="text-gray-600">
+                Select from professionally designed templates that are optimized for applicant tracking systems and hiring managers.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl font-bold text-white">3</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Download & Apply</h3>
+              <p className="text-gray-600">
+                Download your resume as a PDF or Word document. Make edits anytime and generate multiple versions for different job applications.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -381,28 +299,26 @@ export default function Landing({ user, onUserChange }: LandingProps) {
                   Generate personalized cover letters that perfectly match job descriptions and highlight your relevant experience.
                 </p>
 
-                <Card>
-                  <CardContent className="p-6 space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
-                      <Input defaultValue="Frontend Developer" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
-                      <Input defaultValue="Google" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Job Description</label>
-                      <Textarea rows={3} placeholder="Paste the job description..." />
-                    </div>
-                    
-                    <Link href="/cover-letter">
-                      <Button className="w-full bg-purple-600 text-white hover:bg-purple-700">
-                        Generate Cover Letter
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
+                <div className="space-y-4">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                    <span>Analyzes job requirements automatically</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                    <span>Matches your experience to job needs</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                    <span>Professional formatting and tone</span>
+                  </div>
+                </div>
+
+                <Link href="/cover-letter" className="block mt-6">
+                  <Button className="w-full bg-purple-600 text-white hover:bg-purple-700">
+                    Try Cover Letter Generator
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 
@@ -420,46 +336,26 @@ export default function Landing({ user, onUserChange }: LandingProps) {
                   Analyze how well your resume matches job requirements and get specific suggestions for improvement.
                 </p>
 
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Upload Job Description</label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-                        <Download className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-sm text-gray-600">Drop files here or browse</p>
-                      </div>
-                    </div>
-                    
-                    <Link href="/job-analyzer">
-                      <Button className="w-full bg-success text-white hover:bg-green-700">
-                        Analyze Match Score
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
+                <div className="space-y-4">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                    <span>Provides match percentage score</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                    <span>Identifies missing keywords and skills</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                    <span>Suggests specific improvements</span>
+                  </div>
+                </div>
 
-                {/* Sample Results */}
-                <Card className="mt-6">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-gray-700">Match Score</span>
-                      <span className="text-2xl font-bold text-success">87%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                      <div className="bg-success h-2 rounded-full" style={{ width: '87%' }}></div>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center text-success">
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Strong technical skills match
-                      </div>
-                      <div className="flex items-center text-warning">
-                        <Lightbulb className="w-4 h-4 mr-2" />
-                        Consider adding cloud experience
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <Link href="/job-analyzer" className="block mt-6">
+                  <Button className="w-full bg-success text-white hover:bg-green-700">
+                    Try Job Match Analyzer
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
