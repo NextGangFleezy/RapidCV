@@ -44,17 +44,21 @@ export default function FirebaseDebug() {
 
   const testGoogleSignIn = async () => {
     setIsLoading(true);
-    addLog("Testing Google sign-in flow...");
+    addLog("Testing Google sign-in popup...");
     
     try {
       const result = await signInWithGoogle();
       if (result) {
         addLog(`Google sign-in successful: ${result.email}`);
       } else {
-        addLog("Google sign-in initiated redirect");
+        addLog("Google sign-in cancelled or failed");
       }
     } catch (error: any) {
-      addLog(`Google sign-in error: ${error.code} - ${error.message}`);
+      if (error.code === 'auth/popup-closed-by-user') {
+        addLog("User closed the popup");
+      } else {
+        addLog(`Google sign-in error: ${error.code} - ${error.message}`);
+      }
     }
     
     setIsLoading(false);

@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
   GoogleAuthProvider, 
+  signInWithPopup,
   signInWithRedirect, 
   getRedirectResult, 
   signOut, 
@@ -41,21 +42,17 @@ googleProvider.addScope('profile');
 export const signInWithGoogle = async (): Promise<FirebaseUser | null> => {
   console.log('🚀 signInWithGoogle called');
   try {
-    // First, try to get any pending redirect result
-    console.log('🔍 Checking for redirect result...');
-    const redirectResult = await getRedirectResult(auth);
-    console.log('📥 Redirect result:', redirectResult);
+    // Use popup-based sign-in for better reliability
+    console.log('🔄 Starting Google sign-in popup...');
+    const result = await signInWithPopup(auth, googleProvider);
     
-    if (redirectResult?.user) {
-      console.log('✅ Found user from redirect:', redirectResult.user.email);
-      return redirectResult.user;
+    if (result?.user) {
+      console.log('✅ Google sign-in successful:', result.user.email);
+      return result.user;
     }
     
-    // If no redirect result, initiate redirect
-    console.log('🔄 No redirect result, initiating redirect...');
-    await signInWithRedirect(auth, googleProvider);
-    console.log('🔄 Redirect initiated, page will reload');
-    return null; // Will redirect away from page
+    console.log('⚠️ No user returned from popup');
+    return null;
   } catch (error: any) {
     console.error('❌ Google sign-in error:', error);
     console.error('❌ Error details:', {
@@ -63,32 +60,23 @@ export const signInWithGoogle = async (): Promise<FirebaseUser | null> => {
       message: error?.message || 'Unknown error',
       stack: error?.stack || 'No stack trace'
     });
+    
+    // Handle specific Firebase auth errors
+    if (error.code === 'auth/popup-closed-by-user') {
+      console.log('ℹ️ User closed the popup');
+      return null;
+    }
+    
     throw error;
   }
 };
 
-// Handle redirect result on page load
+// Handle redirect result on page load (kept for compatibility but not used with popup auth)
 export const handleAuthRedirect = async (): Promise<FirebaseUser | null> => {
-  console.log('🔄 handleAuthRedirect called on page load');
-  try {
-    const result = await getRedirectResult(auth);
-    console.log('📥 Page load redirect result:', result);
-    
-    if (result?.user) {
-      console.log('✅ User authenticated via redirect:', result.user.email);
-    } else {
-      console.log('ℹ️ No redirect authentication result');
-    }
-    
-    return result?.user || null;
-  } catch (error: any) {
-    console.error('❌ Auth redirect error:', error);
-    console.error('❌ Redirect error details:', {
-      code: error?.code || 'unknown',
-      message: error?.message || 'Unknown error'
-    });
-    throw error;
-  }
+  console.log('🔄 handleAuthRedirect called (popup auth mode)');
+  // With popup authentication, we don't need to handle redirects
+  // This function is kept for compatibility with existing code
+  return null;
 };
 
 // Email/Password Authentication
