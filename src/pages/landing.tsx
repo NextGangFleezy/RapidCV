@@ -67,7 +67,16 @@ export default function Landing({ user, onUserChange }: LandingProps) {
               >
                 Get 2 Free Resumes
               </Button>
-              <Button variant="outline" size="lg" className="px-8 py-4 text-lg">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="px-8 py-4 text-lg"
+                onClick={() => {
+                  document.getElementById('pricing')?.scrollIntoView({ 
+                    behavior: 'smooth' 
+                  });
+                }}
+              >
                 View Our Plans
               </Button>
             </div>
@@ -273,7 +282,7 @@ export default function Landing({ user, onUserChange }: LandingProps) {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 bg-white">
+      <section id="pricing" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
