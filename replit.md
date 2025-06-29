@@ -125,6 +125,9 @@ RapidCV is a modern, full-stack resume builder application that enables users to
 3. Static assets served from Vercel CDN
 
 ## Changelog
+- June 29, 2025: Created comprehensive debugging system in admin panel with Firebase debug, performance monitoring, error tracking, and diagnostic tools
+- June 29, 2025: Added error boundaries and performance monitoring components for system stability
+- June 29, 2025: Moved all debugging components from homepage to dedicated admin panel for proper organization
 - June 27, 2025: Implemented dual authentication system with email/password and Google sign-in options to resolve Firebase redirect issues
 - June 27, 2025: Added comprehensive authentication debugging tools and user-friendly error handling
 - June 27, 2025: Fixed Firebase "invalid-continue-uri" error by providing fallback email authentication
