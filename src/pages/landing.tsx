@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import AuthDialog from "@/components/auth-dialog";
 import FirebaseDebug from "@/components/firebase-debug";
+import HomepageDebug from "@/components/homepage-debug";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -655,6 +656,9 @@ export default function Landing({ user, onUserChange }: LandingProps) {
       <div className="mt-16 mb-8">
         <FirebaseDebug />
       </div>
+      
+      {/* Homepage Debug Panel */}
+      <HomepageDebug />
     </div>
   );
 }

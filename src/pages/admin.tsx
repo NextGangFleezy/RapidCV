@@ -8,6 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import FirebaseDebug from "@/components/firebase-debug";
+import HomepageDebug from "@/components/homepage-debug";
+import PerformanceMonitor from "@/components/performance-monitor";
 import { 
   AiOutlineExclamationCircle as AlertCircle,
   AiOutlineDatabase as Database,
@@ -125,11 +128,12 @@ export default function Admin({ user }: AdminProps) {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="data">Data Management</TabsTrigger>
           <TabsTrigger value="sql">SQL Console</TabsTrigger>
+          <TabsTrigger value="debug">Debug & Monitor</TabsTrigger>
           <TabsTrigger value="tools">Tools</TabsTrigger>
         </TabsList>
 
@@ -353,6 +357,104 @@ export default function Admin({ user }: AdminProps) {
                   </pre>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="debug" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Firebase Authentication Debug</CardTitle>
+                <CardDescription>Monitor authentication system and test Firebase integration</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FirebaseDebug />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance Monitoring</CardTitle>
+                <CardDescription>Real-time performance metrics and web vitals</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PerformanceMonitor />
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>System Monitoring</CardTitle>
+              <CardDescription>Comprehensive system debugging and error tracking</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <HomepageDebug />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Console & Error Logs</CardTitle>
+              <CardDescription>Live monitoring of browser console and application errors</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-semibold mb-2">Real-time Console Monitor</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    This panel captures all console logs, errors, and warnings in real-time.
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-white rounded border">
+                      <div className="text-lg font-bold text-green-600" id="success-count">0</div>
+                      <div className="text-xs text-gray-500">Success Logs</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded border">
+                      <div className="text-lg font-bold text-red-600" id="error-count">0</div>
+                      <div className="text-xs text-gray-500">Error Logs</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Quick Diagnostic Tests</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        console.log('🧪 Test log entry generated');
+                        toast({ title: "Test", description: "Test log generated" });
+                      }}
+                    >
+                      Generate Test Log
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        fetch('/api/users').then(r => 
+                          console.log('🌐 API test:', r.status, r.statusText)
+                        );
+                      }}
+                    >
+                      Test API Connection
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        const testData = { timestamp: Date.now(), test: true };
+                        console.log('📊 Performance test:', performance.now());
+                      }}
+                    >
+                      Performance Test
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
