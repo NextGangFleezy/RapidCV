@@ -56,12 +56,12 @@ export const signInWithGoogle = async (): Promise<FirebaseUser | null> => {
     await signInWithRedirect(auth, googleProvider);
     console.log('🔄 Redirect initiated, page will reload');
     return null; // Will redirect away from page
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Google sign-in error:', error);
     console.error('❌ Error details:', {
-      code: error.code,
-      message: error.message,
-      stack: error.stack
+      code: error?.code || 'unknown',
+      message: error?.message || 'Unknown error',
+      stack: error?.stack || 'No stack trace'
     });
     throw error;
   }
@@ -81,11 +81,11 @@ export const handleAuthRedirect = async (): Promise<FirebaseUser | null> => {
     }
     
     return result?.user || null;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Auth redirect error:', error);
     console.error('❌ Redirect error details:', {
-      code: error.code,
-      message: error.message
+      code: error?.code || 'unknown',
+      message: error?.message || 'Unknown error'
     });
     throw error;
   }

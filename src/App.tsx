@@ -13,6 +13,7 @@ import JobAnalyzer from "@/pages/job-analyzer";
 import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 import UnifiedWorkspace from "@/pages/unified-workspace";
+import ErrorBoundary from "@/components/error-boundary";
 
 function Router() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -66,12 +67,14 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
