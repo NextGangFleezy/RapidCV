@@ -28,10 +28,38 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
     password: "test123"
   };
 
-  const useTestAccount = () => {
-    setEmail(testAccount.email);
-    setPassword(testAccount.password);
-    setConfirmPassword(testAccount.password);
+  const useTestAccount = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // First try to create the test account
+      console.log('🧪 Creating test account...');
+      const newUser = await signUpWithEmail(testAccount.email, testAccount.password);
+      console.log('✅ Test account created and signed in:', newUser.email);
+      onSignIn(newUser);
+      onOpenChange(false);
+    } catch (signUpError: any) {
+      console.log('ℹ️ Test account may already exist, trying to sign in...');
+      
+      if (signUpError.code === 'auth/email-already-in-use') {
+        try {
+          // Account exists, try to sign in
+          const user = await signInWithEmail(testAccount.email, testAccount.password);
+          console.log('✅ Test account sign-in successful:', user.email);
+          onSignIn(user);
+          onOpenChange(false);
+        } catch (signInError: any) {
+          console.error('❌ Test account sign-in failed:', signInError);
+          setError('Test account exists but password may be different. Try creating your own account.');
+        }
+      } else {
+        console.error('❌ Test account creation failed:', signUpError);
+        setError('Unable to create test account. Please create your own account.');
+      }
+    }
+    
+    setIsLoading(false);
   };
 
   const handleEmailAuth = async (isSignUp: boolean) => {
@@ -270,7 +298,10 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
           variant="secondary"
           className="w-full"
         >
-          Use Test Account (test@rapidcv.com)
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : null}
+          Quick Demo Sign-In (creates test account)
         </Button>
         
         <Button 
