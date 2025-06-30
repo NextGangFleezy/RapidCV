@@ -23,6 +23,10 @@ export default function Navigation({ user, onUserChange }: NavigationProps) {
       title: "Welcome!",
       description: "Successfully signed in with Google!",
     });
+    // Redirect to dashboard after successful sign-in
+    setTimeout(() => {
+      window.location.href = "/dashboard";
+    }, 1000);
   };
 
   const handleLogout = async () => {

@@ -22,6 +22,18 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  // Test account credentials
+  const testAccount = {
+    email: "test@rapidcv.com",
+    password: "test123"
+  };
+
+  const useTestAccount = () => {
+    setEmail(testAccount.email);
+    setPassword(testAccount.password);
+    setConfirmPassword(testAccount.password);
+  };
+
   const handleEmailAuth = async (isSignUp: boolean) => {
     setIsLoading(true);
     setError(null);
@@ -85,12 +97,23 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
       if (user) {
         onSignIn(user);
         onOpenChange(false);
+      } else {
+        setError('Google sign-in was cancelled or failed. Please try again or use email/password.');
       }
     } catch (error: any) {
       console.error('Google sign-in error:', error);
-      setError('Google sign-in is temporarily unavailable. Please use email/password.');
-      setIsLoading(false);
+      
+      const errorMessages: { [key: string]: string } = {
+        'auth/popup-blocked': 'Popup was blocked by your browser. Please allow popups for this site or use email/password.',
+        'auth/popup-closed-by-user': 'Sign-in was cancelled. Please try again or use email/password.',
+        'auth/unauthorized-domain': 'This domain is not authorized for Google sign-in. Please use email/password.',
+        'auth/operation-not-allowed': 'Google sign-in is not enabled. Please use email/password.',
+      };
+      
+      setError(errorMessages[error.code] || 'Google sign-in failed. Please try email/password instead.');
     }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -240,6 +263,15 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
             <span className="bg-background px-2 text-muted-foreground">Or</span>
           </div>
         </div>
+        
+        <Button 
+          onClick={useTestAccount}
+          disabled={isLoading}
+          variant="secondary"
+          className="w-full"
+        >
+          Use Test Account (test@rapidcv.com)
+        </Button>
         
         <Button 
           onClick={handleGoogleSignIn}
