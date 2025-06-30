@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChange, handleAuthRedirect } from "./lib/firebase";
 import { User as FirebaseUser } from "firebase/auth";
 import Landing from "@/pages/landing";
+import Dashboard from "@/pages/dashboard";
 import ResumeBuilder from "@/pages/resume-builder";
 import CoverLetter from "@/pages/cover-letter";
 import JobAnalyzer from "@/pages/job-analyzer";
@@ -54,9 +55,11 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={() => <Landing user={user} onUserChange={setUser} />} />
+      <Route path="/dashboard" component={() => <Dashboard user={user} onUserChange={setUser} />} />
       <Route path="/workspace" component={() => <UnifiedWorkspace user={user} />} />
       <Route path="/builder" component={() => <ResumeBuilder user={user} />} />
       <Route path="/builder/:id" component={() => <ResumeBuilder user={user} />} />
+      <Route path="/resume-builder" component={() => <ResumeBuilder user={user} />} />
       <Route path="/cover-letter" component={() => <CoverLetter user={user} />} />
       <Route path="/job-analyzer" component={() => <JobAnalyzer user={user} />} />
       <Route path="/admin" component={() => <Admin user={user} />} />

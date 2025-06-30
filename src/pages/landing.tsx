@@ -36,12 +36,21 @@ export default function Landing({ user, onUserChange }: LandingProps) {
 
   const handleStartTrial = () => {
     if (user) {
-      // User is signed in, redirect to builder
-      window.location.href = "/builder";
+      // User is signed in, redirect to dashboard
+      window.location.href = "/dashboard";
     } else {
       // User not signed in, show auth dialog
       setAuthOpen(true);
     }
+  };
+
+  const handleAuthSuccess = (signedInUser: FirebaseUser) => {
+    onUserChange?.(signedInUser);
+    setAuthOpen(false);
+    // Redirect to dashboard after successful sign-in
+    setTimeout(() => {
+      window.location.href = "/dashboard";
+    }, 100);
   };
 
   return (
@@ -459,7 +468,7 @@ export default function Landing({ user, onUserChange }: LandingProps) {
       <AuthDialog 
         open={authOpen} 
         onOpenChange={setAuthOpen}
-        onSignIn={handleGoogleSignIn}
+        onSignIn={handleAuthSuccess}
       />
     </div>
   );

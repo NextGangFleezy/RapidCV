@@ -42,7 +42,7 @@ googleProvider.addScope('profile');
 export const signInWithGoogle = async (): Promise<FirebaseUser | null> => {
   console.log('🚀 signInWithGoogle called');
   try {
-    // Use popup-based sign-in for better reliability
+    // Try popup first, fallback to redirect if blocked
     console.log('🔄 Starting Google sign-in popup...');
     const result = await signInWithPopup(auth, googleProvider);
     
@@ -67,16 +67,45 @@ export const signInWithGoogle = async (): Promise<FirebaseUser | null> => {
       return null;
     }
     
+    // If popup is blocked, fallback to redirect
+    if (error.code === 'auth/popup-blocked') {
+      console.log('🔄 Popup blocked, falling back to redirect...');
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        return null; // Will redirect away from page
+      } catch (redirectError: any) {
+        console.error('❌ Redirect fallback failed:', redirectError);
+        throw redirectError;
+      }
+    }
+    
     throw error;
   }
 };
 
-// Handle redirect result on page load (kept for compatibility but not used with popup auth)
+// Handle redirect result on page load (for popup fallback)
 export const handleAuthRedirect = async (): Promise<FirebaseUser | null> => {
-  console.log('🔄 handleAuthRedirect called (popup auth mode)');
-  // With popup authentication, we don't need to handle redirects
-  // This function is kept for compatibility with existing code
-  return null;
+  console.log('🔄 handleAuthRedirect called');
+  try {
+    const result = await getRedirectResult(auth);
+    console.log('📥 Page load redirect result:', result);
+    
+    if (result?.user) {
+      console.log('✅ User authenticated via redirect fallback:', result.user.email);
+      return result.user;
+    } else {
+      console.log('ℹ️ No redirect authentication result');
+    }
+    
+    return result?.user || null;
+  } catch (error: any) {
+    console.error('❌ Auth redirect error:', error);
+    console.error('❌ Redirect error details:', {
+      code: error?.code || 'unknown',
+      message: error?.message || 'Unknown error'
+    });
+    throw error;
+  }
 };
 
 // Email/Password Authentication
