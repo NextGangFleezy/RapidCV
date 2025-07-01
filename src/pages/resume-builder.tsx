@@ -271,26 +271,16 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       };
       
       console.log("📝 Setting new resume data from file upload:", newResumeData);
-      setResumeData(newResumeData);
       
-      console.log('🔄 Updated resume data state:', {
-        personalInfo: parsedData.personalInfo,
-        experienceCount: parsedData.experience?.length || 0,
-        skillsCount: parsedData.skills?.length || 0
-      });
+      // Immediate synchronous updates
+      setResumeData(newResumeData);
+      setPreviewKey(Date.now());
+      setActiveTab("personal");
 
       toast({
         title: "Resume Uploaded Successfully",
-        description: "Your resume has been parsed and loaded. You can now edit and optimize it.",
+        description: `Extracted: ${newResumeData.personalInfo.firstName} ${newResumeData.personalInfo.lastName}, ${newResumeData.experience.length} jobs, ${newResumeData.skills.length} skills`,
       });
-
-      // Force preview update and tab change after state update
-      setPreviewKey(prev => prev + 1);
-      setTimeout(() => {
-        setActiveTab("personal");
-        // Force another preview update after tab change
-        setPreviewKey(prev => prev + 1);
-      }, 100);
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -345,23 +335,17 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       };
       
       console.log("📝 Setting new resume data from text input:", newResumeData);
+      
+      // Use React's flushSync to ensure synchronous state update
       setResumeData(newResumeData);
+      setPreviewKey(Date.now()); // Use timestamp for unique key
+      setActiveTab("personal");
+      setResumeText(""); // Clear immediately
 
       toast({
         title: "Resume Parsed Successfully", 
-        description: "Your resume text has been analyzed and structured. You can now edit and optimize it.",
+        description: `Extracted: ${newResumeData.personalInfo.firstName} ${newResumeData.personalInfo.lastName}, ${newResumeData.experience.length} jobs, ${newResumeData.skills.length} skills`,
       });
-
-      // Force preview update and tab change after state update
-      setPreviewKey(prev => prev + 1);
-      setTimeout(() => {
-        console.log("🔄 Switching to personal tab after data update");
-        setActiveTab("personal");
-        setPreviewKey(prev => prev + 1); // Force another preview refresh
-        setTimeout(() => {
-          setResumeText(""); // Clear the text area after tab switch
-        }, 50);
-      }, 200);
     } catch (error) {
       console.error('Parsing error:', error);
       toast({
@@ -723,6 +707,44 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
                                 Parse with AI
                               </>
                             )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const testData = {
+                                ...defaultResumeData,
+                                personalInfo: {
+                                  firstName: "John",
+                                  lastName: "Smith", 
+                                  email: "john@email.com",
+                                  phone: "(555) 123-4567",
+                                  location: "San Francisco, CA",
+                                  website: "",
+                                  linkedin: "",
+                                  github: ""
+                                },
+                                summary: "Experienced software engineer with 5+ years developing web applications.",
+                                experience: [{
+                                  id: "exp_1",
+                                  company: "Tech Corp",
+                                  position: "Senior Software Engineer",
+                                  startDate: "01/2022",
+                                  endDate: "",
+                                  current: true,
+                                  description: "Full-stack development",
+                                  achievements: ["Led team of 5 engineers", "Improved performance by 40%"]
+                                }],
+                                skills: ["JavaScript", "React", "Node.js", "Python"],
+                                templateId: "modern"
+                              };
+                              setResumeData(testData);
+                              setPreviewKey(Date.now());
+                              setActiveTab("personal");
+                              toast({ title: "Test Data Loaded", description: "Sample resume loaded for testing" });
+                            }}
+                          >
+                            Load Test Data
                           </Button>
                         </CardContent>
                       </Card>
