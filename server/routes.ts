@@ -165,31 +165,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Processing file: ${fileName}, size: ${fileBuffer.length} bytes`);
         
         if (fileName.endsWith('.pdf')) {
-          // For PDF files, we'll use simple binary-to-text extraction 
-          // This works for text-based PDFs but not scanned images
+          // For PDF files, extract text with strict filtering
           try {
-            // Convert PDF buffer to string and extract readable text
-            let pdfText = fileBuffer.toString('binary');
+            const rawText = fileBuffer.toString('utf8');
             
-            // Extract text between common PDF text markers
-            const textMatches = pdfText.match(/\(([^)]+)\)/g);
-            if (textMatches) {
-              resumeText = textMatches
-                .map(match => match.slice(1, -1)) // Remove parentheses
+            // Extract only readable text using multiple strategies
+            let cleanText = '';
+            
+            // Strategy 1: Extract text between PDF text markers
+            const textMatches = rawText.match(/\(([^)]+)\)/g);
+            if (textMatches && textMatches.length > 0) {
+              cleanText = textMatches
+                .map(match => match.slice(1, -1))
+                .filter(text => text.length > 2 && /[a-zA-Z]/.test(text)) // Must contain letters
                 .join(' ')
                 .replace(/\\[a-z]/g, '') // Remove PDF escape sequences
-                .replace(/\s+/g, ' ') // Normalize whitespace
-                .trim();
-            }
-            
-            // Fallback: try to extract any readable ASCII text
-            if (!resumeText || resumeText.length < 20) {
-              resumeText = fileBuffer.toString('utf8')
-                .replace(/[^\x20-\x7E\n\r]/g, ' ') // Keep only printable ASCII
+                .replace(/[^\x20-\x7E\n\r]/g, ' ') // Only printable ASCII
                 .replace(/\s+/g, ' ')
                 .trim();
             }
             
+            // Strategy 2: Extract readable words if first strategy fails
+            if (!cleanText || cleanText.length < 50) {
+              const words = rawText
+                .replace(/[^\x20-\x7E\n\r]/g, ' ')
+                .split(/\s+/)
+                .filter(word => word.length > 2 && /^[a-zA-Z0-9@.-]+$/.test(word))
+                .slice(0, 1000); // Limit to first 1000 valid words
+              
+              cleanText = words.join(' ');
+            }
+            
+            // Enforce length limits to prevent token overflow
+            if (cleanText.length > 10000) {
+              cleanText = cleanText.substring(0, 10000) + '...';
+            }
+            
+            resumeText = cleanText;
             console.log(`PDF text extraction completed, ${resumeText.length} characters extracted`);
             
             if (!resumeText || resumeText.length < 20) {

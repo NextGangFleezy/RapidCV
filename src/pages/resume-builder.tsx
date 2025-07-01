@@ -255,16 +255,23 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       console.log('📥 Received parsed data from server:', parsedData);
       
       // Update resume data with parsed information
-      setResumeData({
+      const newResumeData = {
         ...defaultResumeData,
         title: parsedData.personalInfo?.firstName ? `${parsedData.personalInfo.firstName} ${parsedData.personalInfo.lastName} Resume` : "Uploaded Resume",
-        personalInfo: parsedData.personalInfo || defaultResumeData.personalInfo,
+        personalInfo: {
+          ...defaultResumeData.personalInfo,
+          ...(parsedData.personalInfo || {})
+        },
         summary: parsedData.summary || "",
-        experience: parsedData.experience || [],
-        education: parsedData.education || [],
-        skills: parsedData.skills || [],
-        projects: parsedData.projects || [],
-      });
+        experience: Array.isArray(parsedData.experience) ? parsedData.experience : [],
+        education: Array.isArray(parsedData.education) ? parsedData.education : [],
+        skills: Array.isArray(parsedData.skills) ? parsedData.skills : [],
+        projects: Array.isArray(parsedData.projects) ? parsedData.projects : [],
+        templateId: "modern"
+      };
+      
+      console.log("📝 Setting new resume data from file upload:", newResumeData);
+      setResumeData(newResumeData);
       
       console.log('🔄 Updated resume data state:', {
         personalInfo: parsedData.personalInfo,
@@ -320,16 +327,23 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       const parsedData = await response.json();
       
       // Update resume data with parsed information
-      setResumeData({
+      const newResumeData = {
         ...defaultResumeData,
         title: parsedData.personalInfo?.firstName ? `${parsedData.personalInfo.firstName} ${parsedData.personalInfo.lastName} Resume` : "Parsed Resume",
-        personalInfo: parsedData.personalInfo || defaultResumeData.personalInfo,
+        personalInfo: {
+          ...defaultResumeData.personalInfo,
+          ...(parsedData.personalInfo || {})
+        },
         summary: parsedData.summary || "",
-        experience: parsedData.experience || [],
-        education: parsedData.education || [],
-        skills: parsedData.skills || [],
-        projects: parsedData.projects || [],
-      });
+        experience: Array.isArray(parsedData.experience) ? parsedData.experience : [],
+        education: Array.isArray(parsedData.education) ? parsedData.education : [],
+        skills: Array.isArray(parsedData.skills) ? parsedData.skills : [],
+        projects: Array.isArray(parsedData.projects) ? parsedData.projects : [],
+        templateId: "modern"
+      };
+      
+      console.log("📝 Setting new resume data from text input:", newResumeData);
+      setResumeData(newResumeData);
 
       toast({
         title: "Resume Parsed Successfully", 

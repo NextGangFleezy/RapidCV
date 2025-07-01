@@ -103,10 +103,17 @@ export async function parseResumeWithAI(resumeText: string): Promise<ParsedResum
     console.log('🤖 Claude AI: Starting resume parsing...');
     
     // Clean and validate input text before sending to Claude
-    const cleanText = resumeText
+    let cleanText = resumeText
       .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable chars  
       .replace(/\s+/g, ' ')
       .trim();
+      
+    // Enforce strict length limits to prevent token overflow
+    // Claude has a 200k token limit, so we'll use 8k characters max (~2k tokens)
+    if (cleanText.length > 8000) {
+      console.log(`🤖 Claude AI: Truncating text from ${cleanText.length} to 8000 characters`);
+      cleanText = cleanText.substring(0, 8000) + '...';
+    }
       
     if (cleanText.length < 20) {
       throw new Error('Insufficient readable text for AI parsing');
