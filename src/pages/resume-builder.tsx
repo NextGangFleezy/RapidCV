@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, Download, Save, Eye, Edit, FileText, User, Briefcase } from "@/lib/icons";
+import { Plus, Trash2, Download, Save, Eye, Edit, FileText, User, Briefcase, Upload, Target, Zap, RefreshCw } from "@/lib/icons";
 import { type AuthUser } from "@/lib/auth";
 import { type Resume, type InsertResume } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -112,8 +112,16 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
   const resumeId = params.id ? parseInt(params.id) : null;
   
   const [resumeData, setResumeData] = useState<ResumeData>(defaultResumeData);
-  const [activeTab, setActiveTab] = useState("personal");
+  const [activeTab, setActiveTab] = useState("setup");
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Job Analysis and Upload States
+  const [jobDescription, setJobDescription] = useState("");
+  const [jobAnalysis, setJobAnalysis] = useState<any>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showJobAnalyzer, setShowJobAnalyzer] = useState(false);
 
   // Fetch existing resume if editing
   const { data: existingResume, isLoading } = useQuery<any>({
@@ -197,6 +205,126 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       console.error("Save error:", error);
     },
   });
+
+  // File upload handler for PDF and Word documents
+  const handleFileUpload = async (file: File) => {
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    if (file.size > maxSize) {
+      toast({
+        title: "File Too Large",
+        description: "File size must be under 50MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a PDF or Word document (.pdf, .doc, .docx).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadedFile(file);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/resumes/parse', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const parsedData = await response.json();
+      
+      // Update resume data with parsed information
+      setResumeData({
+        ...defaultResumeData,
+        title: parsedData.personalInfo?.firstName ? `${parsedData.personalInfo.firstName} ${parsedData.personalInfo.lastName} Resume` : "Uploaded Resume",
+        personalInfo: parsedData.personalInfo || defaultResumeData.personalInfo,
+        summary: parsedData.summary || "",
+        experience: parsedData.experience || [],
+        education: parsedData.education || [],
+        skills: parsedData.skills || [],
+        projects: parsedData.projects || [],
+      });
+
+      toast({
+        title: "Resume Uploaded Successfully",
+        description: "Your resume has been parsed and loaded. You can now edit and optimize it.",
+      });
+
+      setActiveTab("personal");
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to parse the uploaded file. Please try again or enter your information manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Job analysis handler
+  const handleJobAnalysis = async () => {
+    if (!jobDescription.trim()) {
+      toast({
+        title: "Job Description Required",
+        description: "Please enter a job description to analyze.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch('/api/job-analyses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobDescription: jobDescription.trim(),
+          resumeData: resumeData,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Analysis failed');
+      }
+      
+      const analysisResult = await response.json();
+
+      setJobAnalysis(analysisResult);
+      toast({
+        title: "Job Analysis Complete",
+        description: "Your resume has been analyzed against the job posting. Check the suggestions below.",
+      });
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast({
+        title: "Analysis Failed",
+        description: "Failed to analyze the job posting. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   // Load from localStorage if no user
   useEffect(() => {
