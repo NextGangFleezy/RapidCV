@@ -272,14 +272,19 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       
       console.log("📝 Setting new resume data from file upload:", newResumeData);
       
-      // Immediate synchronous updates
+      // Force immediate preview update
       setResumeData(newResumeData);
       setPreviewKey(Date.now());
       setActiveTab("personal");
+      
+      // Additional force refresh after state settle
+      setTimeout(() => {
+        setPreviewKey(Date.now());
+      }, 50);
 
       toast({
         title: "Resume Uploaded Successfully",
-        description: `Extracted: ${newResumeData.personalInfo.firstName} ${newResumeData.personalInfo.lastName}, ${newResumeData.experience.length} jobs, ${newResumeData.skills.length} skills`,
+        description: `Loaded: ${newResumeData.personalInfo.firstName || 'Unknown'} ${newResumeData.personalInfo.lastName || ''}, ${newResumeData.experience?.length || 0} jobs, ${newResumeData.skills?.length || 0} skills`,
       });
     } catch (error) {
       console.error('Upload error:', error);

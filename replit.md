@@ -125,7 +125,7 @@ RapidCV is a modern, full-stack resume builder application that enables users to
 3. Static assets served from Vercel CDN
 
 ## Changelog
-- July 1, 2025: Implemented Claude AI-powered PDF text extraction for file uploads, replacing problematic pdf-parse library with direct Claude document analysis
+- July 1, 2025: Fixed PDF upload and live preview system - implemented proper pdf-parse library for reliable text extraction and immediate preview updates with forced state refresh mechanisms
 - June 29, 2025: Enhanced resume builder with integrated job analyzer and file upload (PDF/Word docs up to 50MB) for streamlined resume optimization workflow
 - June 29, 2025: Created comprehensive dashboard page with user overview, quick actions, recent documents, and account summary sections
 - June 29, 2025: Implemented test account system (test@rapidcv.com / test123) for easy authentication testing

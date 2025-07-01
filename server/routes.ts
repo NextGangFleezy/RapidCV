@@ -165,11 +165,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Processing file: ${fileName}, size: ${fileBuffer.length} bytes`);
         
         if (fileName.endsWith('.pdf')) {
-          // For PDF files, return instructive error since proper PDF parsing requires specialized libraries
-          return res.status(400).json({ 
-            message: "PDF upload detected. For best results, please copy the text from your PDF and paste it in the text input area below instead of uploading the file.",
-            error: 'PDF text extraction not supported'
-          });
+          // Use pdf-parse library for proper PDF text extraction
+          try {
+            const pdfParse = require('pdf-parse');
+            const pdfData = await pdfParse(fileBuffer);
+            resumeText = pdfData.text;
+            
+            console.log(`PDF text extraction completed, ${resumeText.length} characters extracted`);
+            
+            if (!resumeText || resumeText.trim().length < 20) {
+              throw new Error('Could not extract readable text from PDF');
+            }
+          } catch (pdfError) {
+            console.error('PDF processing error:', pdfError);
+            return res.status(400).json({ 
+              message: "Failed to extract text from PDF. The file may be password-protected, scanned, or corrupted. Please try copying the text manually.",
+              error: pdfError instanceof Error ? pdfError.message : 'PDF processing error'
+            });
+          }
         } else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
           // For Word documents, we'll extract text using a simple approach
           // In production, you'd want to use a more robust library like mammoth
