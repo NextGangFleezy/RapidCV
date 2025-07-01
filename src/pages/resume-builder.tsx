@@ -122,6 +122,7 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showJobAnalyzer, setShowJobAnalyzer] = useState(false);
+  const [resumeText, setResumeText] = useState("");
 
   // Fetch existing resume if editing
   const { data: existingResume, isLoading } = useQuery<any>({
@@ -274,6 +275,62 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       toast({
         title: "Upload Failed",
         description: "Failed to parse the uploaded file. Please try again or enter your information manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Text-based resume parsing handler
+  const handleTextParsing = async () => {
+    if (!resumeText.trim()) {
+      toast({
+        title: "Resume Text Required",
+        description: "Please enter your resume text to parse.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const response = await fetch('/api/resumes/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resumeText: resumeText.trim() }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Parsing failed');
+      }
+
+      const parsedData = await response.json();
+      
+      // Update resume data with parsed information
+      setResumeData({
+        ...defaultResumeData,
+        title: parsedData.personalInfo?.firstName ? `${parsedData.personalInfo.firstName} ${parsedData.personalInfo.lastName} Resume` : "Parsed Resume",
+        personalInfo: parsedData.personalInfo || defaultResumeData.personalInfo,
+        summary: parsedData.summary || "",
+        experience: parsedData.experience || [],
+        education: parsedData.education || [],
+        skills: parsedData.skills || [],
+        projects: parsedData.projects || [],
+      });
+
+      toast({
+        title: "Resume Parsed Successfully",
+        description: "Your resume text has been analyzed and structured. You can now edit and optimize it.",
+      });
+
+      setActiveTab("personal");
+      setResumeText(""); // Clear the text area
+    } catch (error) {
+      console.error('Parsing error:', error);
+      toast({
+        title: "Parsing Failed",
+        description: "Failed to parse the resume text. Please check the content and try again.",
         variant: "destructive",
       });
     } finally {
@@ -548,46 +605,49 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
 
                   <TabsContent value="setup" className="space-y-6">
                     <div className="space-y-6">
-                      {/* File Upload Section */}
+                      {/* Resume Text Input Section */}
                       <Card>
                         <CardHeader>
                           <CardTitle className="flex items-center">
                             <Upload className="h-5 w-5 mr-2" />
-                            Upload Existing Resume
+                            Import Resume Content
                           </CardTitle>
                           <p className="text-sm text-gray-600">
-                            Upload your current resume (PDF or Word document, up to 50MB) to automatically populate your information.
+                            Copy and paste your resume text below for AI-powered parsing and optimization.
                           </p>
                         </CardHeader>
-                        <CardContent>
-                          <div 
-                            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
-                            onClick={() => document.getElementById('file-upload')?.click()}
-                          >
-                            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-lg font-medium text-gray-900 mb-2">
-                              {uploadedFile ? uploadedFile.name : "Click to upload or drag and drop"}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              PDF, DOC, DOCX files up to 50MB
-                            </p>
-                            <input
-                              id="file-upload"
-                              type="file"
-                              accept=".pdf,.doc,.docx"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handleFileUpload(file);
-                              }}
+                        <CardContent className="space-y-4">
+                          <div>
+                            <Label htmlFor="resume-text">Resume Text</Label>
+                            <Textarea
+                              id="resume-text"
+                              placeholder="Paste your resume content here (copy from PDF, Word doc, or type manually)..."
+                              value={resumeText}
+                              onChange={(e) => setResumeText(e.target.value)}
+                              rows={8}
+                              className="min-h-[200px]"
                             />
                           </div>
-                          {isUploading && (
-                            <div className="mt-4 flex items-center justify-center">
-                              <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                              <span>Parsing your resume...</span>
-                            </div>
-                          )}
+                          <Button 
+                            onClick={handleTextParsing}
+                            disabled={isUploading || !resumeText.trim()}
+                            className="w-full"
+                          >
+                            {isUploading ? (
+                              <>
+                                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                Parsing Resume...
+                              </>
+                            ) : (
+                              <>
+                                <Zap className="h-4 w-4 mr-2" />
+                                Parse with AI
+                              </>
+                            )}
+                          </Button>
+                          <p className="text-xs text-gray-500">
+                            Note: PDF file upload is temporarily unavailable. Please copy text from your PDF and paste it above.
+                          </p>
                         </CardContent>
                       </Card>
 
