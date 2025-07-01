@@ -165,12 +165,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Processing file: ${fileName}, size: ${fileBuffer.length} bytes`);
         
         if (fileName.endsWith('.pdf')) {
-          // For now, we'll return a helpful message about PDF support
-          // PDF parsing requires additional setup that's complex in this environment
-          return res.status(400).json({ 
-            message: "PDF upload is temporarily unavailable. Please copy and paste your resume text directly, or use the manual entry form below.",
-            suggestion: "You can copy text from your PDF and paste it into the text area for AI parsing."
-          });
+          // For PDF files, we'll convert to base64 and use Claude's document analysis
+          try {
+            const base64Data = fileBuffer.toString('base64');
+            console.log(`PDF converted to base64, ${base64Data.length} characters`);
+            
+            // Use Claude to extract text from PDF
+            const textExtractionResponse = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': process.env.ANTHROPIC_API_KEY || '',
+                'anthropic-version': '2023-06-01'
+              },
+              body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 4000,
+                messages: [{
+                  role: 'user',
+                  content: [
+                    {
+                      type: 'text',
+                      text: 'Extract all text content from this PDF document. Return only the plain text, no formatting or explanations.'
+                    },
+                    {
+                      type: 'document',
+                      source: {
+                        type: 'base64',
+                        media_type: 'application/pdf',
+                        data: base64Data
+                      }
+                    }
+                  ]
+                }]
+              })
+            });
+
+            if (!textExtractionResponse.ok) {
+              throw new Error('Claude text extraction failed');
+            }
+
+            const extractionResult = await textExtractionResponse.json();
+            resumeText = extractionResult.content[0]?.text || '';
+            console.log(`Claude extracted ${resumeText.length} characters from PDF`);
+            
+            if (!resumeText || resumeText.length < 20) {
+              throw new Error('Could not extract readable text from PDF');
+            }
+          } catch (pdfError) {
+            console.error('PDF processing error:', pdfError);
+            return res.status(400).json({ 
+              message: "Failed to extract text from PDF. Please try copying the text manually or uploading a different format.",
+              error: pdfError instanceof Error ? pdfError.message : 'PDF processing error'
+            });
+          }
         } else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
           // For Word documents, we'll extract text using a simple approach
           // In production, you'd want to use a more robust library like mammoth

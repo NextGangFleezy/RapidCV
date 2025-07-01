@@ -605,15 +605,58 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
 
                   <TabsContent value="setup" className="space-y-6">
                     <div className="space-y-6">
-                      {/* Resume Text Input Section */}
+                      {/* File Upload Section */}
                       <Card>
                         <CardHeader>
                           <CardTitle className="flex items-center">
                             <Upload className="h-5 w-5 mr-2" />
-                            Import Resume Content
+                            Upload Resume File
                           </CardTitle>
                           <p className="text-sm text-gray-600">
-                            Copy and paste your resume text below for AI-powered parsing and optimization.
+                            Upload your resume (PDF or Word document) for AI-powered parsing and optimization.
+                          </p>
+                        </CardHeader>
+                        <CardContent>
+                          <div 
+                            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                            onClick={() => document.getElementById('file-upload')?.click()}
+                          >
+                            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                            <p className="text-lg font-medium text-gray-900 mb-2">
+                              {uploadedFile ? uploadedFile.name : "Click to upload or drag and drop"}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              PDF, DOC, DOCX files up to 50MB
+                            </p>
+                            <input
+                              id="file-upload"
+                              type="file"
+                              accept=".pdf,.doc,.docx"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleFileUpload(file);
+                              }}
+                            />
+                          </div>
+                          {isUploading && (
+                            <div className="mt-4 flex items-center justify-center">
+                              <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                              <span>Parsing your resume...</span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      {/* Alternative Text Input */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center">
+                            <FileText className="h-5 w-5 mr-2" />
+                            Or Paste Resume Text
+                          </CardTitle>
+                          <p className="text-sm text-gray-600">
+                            Copy and paste your resume content for AI parsing if you prefer not to upload a file.
                           </p>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -621,11 +664,11 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
                             <Label htmlFor="resume-text">Resume Text</Label>
                             <Textarea
                               id="resume-text"
-                              placeholder="Paste your resume content here (copy from PDF, Word doc, or type manually)..."
+                              placeholder="Paste your resume content here..."
                               value={resumeText}
                               onChange={(e) => setResumeText(e.target.value)}
-                              rows={8}
-                              className="min-h-[200px]"
+                              rows={6}
+                              className="min-h-[150px]"
                             />
                           </div>
                           <Button 
@@ -645,9 +688,6 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
                               </>
                             )}
                           </Button>
-                          <p className="text-xs text-gray-500">
-                            Note: PDF file upload is temporarily unavailable. Please copy text from your PDF and paste it above.
-                          </p>
                         </CardContent>
                       </Card>
 

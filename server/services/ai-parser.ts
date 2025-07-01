@@ -100,21 +100,31 @@ function extractSkills(text: string): string[] {
 
 export async function parseResumeWithAI(resumeText: string): Promise<ParsedResumeData> {
   try {
+    console.log('🤖 Claude AI: Starting resume parsing...');
+    
     // Clean and validate input text before sending to Claude
     const cleanText = resumeText
-      .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable chars
+      .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable chars  
       .replace(/\s+/g, ' ')
       .trim();
       
     if (cleanText.length < 20) {
       throw new Error('Insufficient readable text for AI parsing');
     }
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL_STR,
-      max_tokens: 4000,
-      system: `You are an expert resume parser. Parse the provided resume text and extract structured data in JSON format. Be accurate and thorough.
 
-IMPORTANT: Return ONLY valid JSON without any markdown formatting, explanations, or code blocks.
+    console.log(`🤖 Claude AI: Processing ${cleanText.length} characters of resume text`);
+
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR, // claude-sonnet-4-20250514
+      max_tokens: 4000,
+      system: `You are an expert resume parser powered by Claude AI. Your task is to analyze resume text and extract structured data with high accuracy.
+
+🎯 CRITICAL INSTRUCTIONS:
+1. Return ONLY valid JSON - no markdown, explanations, or code blocks
+2. Parse ALL information accurately from the resume text
+3. Use unique IDs for experience, education, and project entries
+4. Extract skills as an array of individual skill names
+5. Be thorough but precise in data extraction
 
 Required JSON structure:
 {
@@ -130,7 +140,7 @@ Required JSON structure:
   },
   "summary": "string - professional summary/objective",
   "experience": [{
-    "id": "string - unique identifier",
+    "id": "string - unique identifier like 'exp_1'",
     "company": "string",
     "position": "string", 
     "startDate": "string - MM/YYYY format",
@@ -140,7 +150,7 @@ Required JSON structure:
     "achievements": ["array of key achievements/responsibilities"]
   }],
   "education": [{
-    "id": "string - unique identifier",
+    "id": "string - unique identifier like 'edu_1'",
     "institution": "string",
     "degree": "string",
     "field": "string (optional)",
@@ -181,11 +191,25 @@ Guidelines:
       throw new Error('Unexpected response format from AI');
     }
 
+    console.log('🤖 Claude AI: Received response, parsing JSON...');
+    
     let parsedData;
     try {
-      parsedData = JSON.parse(content.text);
+      // Clean the response text to ensure valid JSON
+      let responseText = content.text.trim();
+      
+      // Remove markdown code blocks if present
+      if (responseText.startsWith('```json')) {
+        responseText = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (responseText.startsWith('```')) {
+        responseText = responseText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      parsedData = JSON.parse(responseText);
+      console.log('🤖 Claude AI: Successfully parsed JSON response');
     } catch (jsonError) {
-      // If JSON parsing fails, extract data manually from AI response
+      console.error('🤖 Claude AI: JSON parsing failed, attempting fallback extraction');
+      // If JSON parsing fails, try to extract basic info manually
       const text = content.text;
       parsedData = {
         personalInfo: {
