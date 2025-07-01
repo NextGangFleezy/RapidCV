@@ -241,9 +241,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log('Parsing resume with AI...');
+      console.log('📋 Parsing resume with AI...');
       const parsedData = await parseResumeWithAI(resumeText);
-      console.log('Resume parsing completed successfully');
+      console.log('✅ Resume parsing completed successfully');
+      console.log('📤 Sending parsed data to frontend:', {
+        hasPersonalInfo: !!parsedData.personalInfo,
+        experienceCount: parsedData.experience?.length || 0,
+        educationCount: parsedData.education?.length || 0,
+        skillsCount: parsedData.skills?.length || 0,
+        projectsCount: parsedData.projects?.length || 0,
+        summaryLength: parsedData.summary?.length || 0
+      });
       
       res.json(parsedData);
     } catch (error) {

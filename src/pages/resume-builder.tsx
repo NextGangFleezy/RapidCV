@@ -123,6 +123,7 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [showJobAnalyzer, setShowJobAnalyzer] = useState(false);
   const [resumeText, setResumeText] = useState("");
+  const [previewKey, setPreviewKey] = useState(0);
 
   // Fetch existing resume if editing
   const { data: existingResume, isLoading } = useQuery<any>({
@@ -251,6 +252,7 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       }
 
       const parsedData = await response.json();
+      console.log('📥 Received parsed data from server:', parsedData);
       
       // Update resume data with parsed information
       setResumeData({
@@ -263,13 +265,22 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
         skills: parsedData.skills || [],
         projects: parsedData.projects || [],
       });
+      
+      console.log('🔄 Updated resume data state:', {
+        personalInfo: parsedData.personalInfo,
+        experienceCount: parsedData.experience?.length || 0,
+        skillsCount: parsedData.skills?.length || 0
+      });
 
       toast({
         title: "Resume Uploaded Successfully",
         description: "Your resume has been parsed and loaded. You can now edit and optimize it.",
       });
 
-      setActiveTab("personal");
+      // Force preview update and tab change after state update
+      setTimeout(() => {
+        setActiveTab("personal");
+      }, 100);
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -320,12 +331,15 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       });
 
       toast({
-        title: "Resume Parsed Successfully",
+        title: "Resume Parsed Successfully", 
         description: "Your resume text has been analyzed and structured. You can now edit and optimize it.",
       });
 
-      setActiveTab("personal");
-      setResumeText(""); // Clear the text area
+      // Force preview update and tab change after state update
+      setTimeout(() => {
+        setActiveTab("personal");
+        setResumeText(""); // Clear the text area
+      }, 100);
     } catch (error) {
       console.error('Parsing error:', error);
       toast({

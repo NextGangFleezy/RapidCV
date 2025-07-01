@@ -207,6 +207,13 @@ Guidelines:
       
       parsedData = JSON.parse(responseText);
       console.log('🤖 Claude AI: Successfully parsed JSON response');
+      console.log('🔍 Parsed data structure:', {
+        hasPersonalInfo: !!parsedData.personalInfo,
+        personalInfo: parsedData.personalInfo,
+        experienceCount: parsedData.experience?.length || 0,
+        skillsCount: parsedData.skills?.length || 0,
+        summaryLength: parsedData.summary?.length || 0
+      });
     } catch (jsonError) {
       console.error('🤖 Claude AI: JSON parsing failed, attempting fallback extraction');
       // If JSON parsing fails, try to extract basic info manually
