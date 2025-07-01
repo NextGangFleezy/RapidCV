@@ -152,7 +152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Resume parsing route with file upload support
+  // Resume parsing route with file upload support (no auth required for parsing)
   app.post("/api/resumes/parse", upload.single('file'), async (req: Request, res: Response) => {
     try {
       let resumeText = '';
@@ -162,22 +162,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const fileBuffer = req.file.buffer;
         const fileName = req.file.originalname.toLowerCase();
         
+        console.log(`Processing file: ${fileName}, size: ${fileBuffer.length} bytes`);
+        
         if (fileName.endsWith('.pdf')) {
           // Parse PDF
           try {
             const pdfParse = require('pdf-parse');
             const pdfData = await pdfParse(fileBuffer);
             resumeText = pdfData.text;
+            console.log(`PDF parsed, extracted ${resumeText.length} characters`);
           } catch (pdfError) {
             console.error('PDF parsing error:', pdfError);
-            return res.status(400).json({ message: "Failed to parse PDF file" });
+            return res.status(400).json({ message: "Failed to parse PDF file. Please ensure it contains selectable text." });
           }
         } else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
           // For Word documents, we'll extract text using a simple approach
           // In production, you'd want to use a more robust library like mammoth
           resumeText = fileBuffer.toString('utf8').replace(/[^\x20-\x7E\n\r]/g, ' ');
+          console.log(`Word document processed, extracted ${resumeText.length} characters`);
         } else {
-          return res.status(400).json({ message: "Unsupported file type" });
+          return res.status(400).json({ message: "Unsupported file type. Please upload PDF or Word documents." });
         }
       } else if (req.body.resumeText) {
         // Handle direct text input
@@ -186,11 +190,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Either file upload or resume text is required" });
       }
       
-      if (!resumeText || resumeText.trim().length < 50) {
-        return res.status(400).json({ message: "Resume content appears to be empty or too short" });
+      if (!resumeText || resumeText.trim().length < 20) {
+        return res.status(400).json({ 
+          message: "Resume content appears to be empty or too short. Please ensure your file contains readable text.",
+          extractedLength: resumeText.length
+        });
       }
 
+      console.log('Parsing resume with AI...');
       const parsedData = await parseResumeWithAI(resumeText);
+      console.log('Resume parsing completed successfully');
+      
       res.json(parsedData);
     } catch (error) {
       console.error('Resume parsing error:', error);
