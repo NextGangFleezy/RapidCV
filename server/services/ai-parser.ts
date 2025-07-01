@@ -120,6 +120,7 @@ export async function parseResumeWithAI(resumeText: string): Promise<ParsedResum
     }
 
     console.log(`🤖 Claude AI: Processing ${cleanText.length} characters of resume text`);
+    console.log('🤖 Claude AI: First 300 chars of input text:', cleanText.substring(0, 300));
 
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL_STR, // claude-sonnet-4-20250514
@@ -199,6 +200,7 @@ Guidelines:
     }
 
     console.log('🤖 Claude AI: Received response, parsing JSON...');
+    console.log('🤖 Claude AI: Raw response content:', content.text.substring(0, 500) + '...');
     
     let parsedData;
     try {
@@ -212,6 +214,7 @@ Guidelines:
         responseText = responseText.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
       
+      console.log('🤖 Claude AI: Cleaned response text:', responseText.substring(0, 500) + '...');
       parsedData = JSON.parse(responseText);
       console.log('🤖 Claude AI: Successfully parsed JSON response');
       console.log('🔍 Parsed data structure:', {

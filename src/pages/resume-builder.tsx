@@ -288,6 +288,8 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       setPreviewKey(prev => prev + 1);
       setTimeout(() => {
         setActiveTab("personal");
+        // Force another preview update after tab change
+        setPreviewKey(prev => prev + 1);
       }, 100);
     } catch (error) {
       console.error('Upload error:', error);
@@ -1251,6 +1253,11 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
               </CardHeader>
               <CardContent>
                 <div key={previewKey} className="bg-white border rounded-lg p-8 shadow-sm min-h-[800px] max-h-[1000px] overflow-y-auto">
+                  {/* Debug info at top */}
+                  <div className="text-xs text-gray-400 mb-2 p-2 bg-gray-50 rounded">
+                    Debug: {resumeData.personalInfo.firstName || '[no firstName]'} | {resumeData.personalInfo.email || '[no email]'} | Key: {previewKey}
+                  </div>
+                  
                   {/* Header */}
                   <div className="text-center mb-6">
                     <h1 className="text-2xl font-bold text-gray-900">
