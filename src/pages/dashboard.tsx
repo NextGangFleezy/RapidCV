@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
+import { hasUnlimitedAccess, getUserPlanName } from "@/lib/user-utils";
 import { 
   FileText, 
   Plus, 
@@ -37,6 +38,9 @@ export default function Dashboard({ user, onUserChange }: DashboardProps) {
     );
   }
 
+  const isUnlimitedUser = hasUnlimitedAccess(user);
+  const planName = getUserPlanName(user);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation user={user} onUserChange={onUserChange} />
@@ -54,11 +58,13 @@ export default function Dashboard({ user, onUserChange }: DashboardProps) {
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="outline" className="text-green-600 border-green-600">
+              <Badge variant="outline" className={isUnlimitedUser ? "text-blue-600 border-blue-600" : "text-green-600 border-green-600"}>
                 <Star className="w-4 h-4 mr-1" />
-                Free Plan (2/2 builds used)
+                {isUnlimitedUser ? "Full Access" : "Free Plan"}
               </Badge>
-              <Button>Upgrade to Pro</Button>
+              <Button variant={isUnlimitedUser ? "outline" : "default"}>
+                {isUnlimitedUser ? "All Features Unlocked" : "Upgrade to Pro"}
+              </Button>
             </div>
           </div>
         </div>
@@ -103,11 +109,11 @@ export default function Dashboard({ user, onUserChange }: DashboardProps) {
                   </Card>
                 </Link>
 
-                <Card className="hover:shadow-md transition-shadow cursor-pointer opacity-50">
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
                   <CardContent className="p-6 text-center">
-                    <Download className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="font-semibold text-gray-500 mb-2">Bulk Export</h3>
-                    <p className="text-sm text-gray-400">Download multiple resumes (Pro feature)</p>
+                    <Download className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                    <h3 className="font-semibold text-gray-900 mb-2">Bulk Export</h3>
+                    <p className="text-sm text-gray-600">Download multiple resumes and documents</p>
                   </CardContent>
                 </Card>
               </div>
@@ -194,18 +200,22 @@ export default function Dashboard({ user, onUserChange }: DashboardProps) {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Plan</span>
-                  <Badge variant="outline">Free</Badge>
+                  <Badge variant="outline" className="text-blue-600 border-blue-600">Test</Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Resumes Created</span>
-                  <span className="font-medium">2/2</span>
+                  <span className="font-medium">Unlimited</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Cover Letters</span>
-                  <span className="font-medium">1</span>
+                  <span className="font-medium">Unlimited</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">AI Features</span>
+                  <span className="font-medium">Enabled</span>
                 </div>
                 <div className="pt-2 border-t">
-                  <Button className="w-full">Upgrade to Pro</Button>
+                  <Button className="w-full" variant="outline">All Features Unlocked</Button>
                 </div>
               </CardContent>
             </Card>

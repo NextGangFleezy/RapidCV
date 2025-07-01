@@ -246,6 +246,9 @@ export class MemStorage implements IStorage {
     const user = await this.getUser(userId);
     if (!user) return false;
     
+    // Test account has unlimited access
+    if (user.email === "test@rapidcv.com") return true;
+    
     // Pro users have unlimited access
     if (user.subscriptionTier === "pro") return true;
     
