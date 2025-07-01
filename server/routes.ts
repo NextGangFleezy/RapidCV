@@ -165,16 +165,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Processing file: ${fileName}, size: ${fileBuffer.length} bytes`);
         
         if (fileName.endsWith('.pdf')) {
-          // Parse PDF
-          try {
-            const pdfParse = require('pdf-parse');
-            const pdfData = await pdfParse(fileBuffer);
-            resumeText = pdfData.text;
-            console.log(`PDF parsed, extracted ${resumeText.length} characters`);
-          } catch (pdfError) {
-            console.error('PDF parsing error:', pdfError);
-            return res.status(400).json({ message: "Failed to parse PDF file. Please ensure it contains selectable text." });
-          }
+          // For now, we'll return a helpful message about PDF support
+          // PDF parsing requires additional setup that's complex in this environment
+          return res.status(400).json({ 
+            message: "PDF upload is temporarily unavailable. Please copy and paste your resume text directly, or use the manual entry form below.",
+            suggestion: "You can copy text from your PDF and paste it into the text area for AI parsing."
+          });
         } else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
           // For Word documents, we'll extract text using a simple approach
           // In production, you'd want to use a more robust library like mammoth
