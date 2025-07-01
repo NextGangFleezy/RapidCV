@@ -278,6 +278,7 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       });
 
       // Force preview update and tab change after state update
+      setPreviewKey(prev => prev + 1);
       setTimeout(() => {
         setActiveTab("personal");
       }, 100);
@@ -336,6 +337,7 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       });
 
       // Force preview update and tab change after state update
+      setPreviewKey(prev => prev + 1);
       setTimeout(() => {
         setActiveTab("personal");
         setResumeText(""); // Clear the text area
@@ -1234,7 +1236,7 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
                 <CardTitle>Live Preview</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-white border rounded-lg p-8 shadow-sm min-h-[800px] max-h-[1000px] overflow-y-auto">
+                <div key={previewKey} className="bg-white border rounded-lg p-8 shadow-sm min-h-[800px] max-h-[1000px] overflow-y-auto">
                   {/* Header */}
                   <div className="text-center mb-6">
                     <h1 className="text-2xl font-bold text-gray-900">
