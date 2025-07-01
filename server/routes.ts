@@ -167,17 +167,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (fileName.endsWith('.pdf')) {
           // Use pdf-parse library for proper PDF text extraction
           try {
+            console.log('📄 Starting PDF text extraction...');
             const pdfParse = require('pdf-parse');
             const pdfData = await pdfParse(fileBuffer);
             resumeText = pdfData.text;
             
-            console.log(`PDF text extraction completed, ${resumeText.length} characters extracted`);
+            console.log(`📄 PDF text extraction completed, ${resumeText.length} characters extracted`);
+            console.log(`📄 First 200 chars: ${resumeText.substring(0, 200)}`);
             
             if (!resumeText || resumeText.trim().length < 20) {
-              throw new Error('Could not extract readable text from PDF');
+              throw new Error('Could not extract readable text from PDF - text too short');
             }
+            
+            // Clean up the text for better AI parsing
+            resumeText = resumeText
+              .replace(/\s+/g, ' ')
+              .replace(/[^\x20-\x7E\n\r]/g, ' ')
+              .trim();
+              
+            console.log(`📄 Cleaned text length: ${resumeText.length} characters`);
+            
           } catch (pdfError) {
-            console.error('PDF processing error:', pdfError);
+            console.error('📄 PDF processing error:', pdfError);
             return res.status(400).json({ 
               message: "Failed to extract text from PDF. The file may be password-protected, scanned, or corrupted. Please try copying the text manually.",
               error: pdfError instanceof Error ? pdfError.message : 'PDF processing error'

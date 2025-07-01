@@ -270,7 +270,10 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
         templateId: "modern"
       };
       
-      console.log("📝 Setting new resume data from file upload:", newResumeData);
+      console.log("📝 Setting new resume data from file upload:");
+      console.log("📝 Personal Info:", newResumeData.personalInfo);
+      console.log("📝 Experience count:", newResumeData.experience.length);
+      console.log("📝 Skills count:", newResumeData.skills.length);
       
       // Force immediate preview update
       setResumeData(newResumeData);
@@ -287,10 +290,13 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
         description: `Loaded: ${newResumeData.personalInfo.firstName || 'Unknown'} ${newResumeData.personalInfo.lastName || ''}, ${newResumeData.experience?.length || 0} jobs, ${newResumeData.skills?.length || 0} skills`,
       });
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('📁 Upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('📁 Error details:', errorMessage);
+      
       toast({
         title: "Upload Failed",
-        description: "Failed to parse the uploaded file. Please try again or enter your information manually.",
+        description: errorMessage.includes('PDF') ? errorMessage : "Failed to parse the uploaded file. Please check the file format and try again.",
         variant: "destructive",
       });
     } finally {
