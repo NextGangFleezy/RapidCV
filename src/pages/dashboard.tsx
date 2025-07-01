@@ -200,22 +200,26 @@ export default function Dashboard({ user, onUserChange }: DashboardProps) {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Plan</span>
-                  <Badge variant="outline" className="text-blue-600 border-blue-600">Test</Badge>
+                  <Badge variant="outline" className={isUnlimitedUser ? "text-blue-600 border-blue-600" : "text-green-600 border-green-600"}>
+                    {planName}
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Resumes Created</span>
-                  <span className="font-medium">Unlimited</span>
+                  <span className="font-medium">{isUnlimitedUser ? "Unlimited" : "2/2"}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Cover Letters</span>
-                  <span className="font-medium">Unlimited</span>
+                  <span className="font-medium">{isUnlimitedUser ? "Unlimited" : "Limited"}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">AI Features</span>
-                  <span className="font-medium">Enabled</span>
+                  <span className="font-medium">{isUnlimitedUser ? "Enabled" : "Upgrade Required"}</span>
                 </div>
                 <div className="pt-2 border-t">
-                  <Button className="w-full" variant="outline">All Features Unlocked</Button>
+                  <Button className="w-full" variant={isUnlimitedUser ? "outline" : "default"}>
+                    {isUnlimitedUser ? "All Features Unlocked" : "Upgrade to Pro"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
