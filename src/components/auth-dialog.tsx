@@ -39,6 +39,11 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
       console.log('✅ Test account created and signed in:', newUser.email);
       onSignIn(newUser);
       onOpenChange(false);
+      
+      // Redirect to dashboard
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 500);
     } catch (signUpError: any) {
       console.log('ℹ️ Test account may already exist, trying to sign in...');
       
@@ -49,6 +54,11 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
           console.log('✅ Test account sign-in successful:', user.email);
           onSignIn(user);
           onOpenChange(false);
+          
+          // Redirect to dashboard
+          setTimeout(() => {
+            window.location.href = "/dashboard";
+          }, 500);
         } catch (signInError: any) {
           console.error('❌ Test account sign-in failed:', signInError);
           setError('Test account exists but password may be different. Try creating your own account.');
@@ -124,6 +134,11 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
       setEmail("");
       setPassword("");
       setConfirmPassword("");
+      
+      // Redirect to dashboard after successful authentication
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 500);
     } catch (error: any) {
       console.error('Email auth error:', error);
       
