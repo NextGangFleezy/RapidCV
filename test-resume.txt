@@ -1,0 +1,37 @@
+John Smith
+Software Engineer
+john.smith@email.com | (555) 123-4567 | San Francisco, CA
+linkedin.com/in/johnsmith | github.com/johnsmith
+
+SUMMARY
+Experienced software engineer with 5+ years developing web applications using JavaScript, React, and Node.js. Passionate about creating scalable solutions and mentoring junior developers.
+
+EXPERIENCE
+
+Senior Software Engineer - Tech Corp
+Jan 2022 - Present
+• Led development of customer portal serving 10,000+ users
+• Improved application performance by 40% through code optimization
+• Mentored 3 junior engineers and established code review practices
+
+Software Engineer - StartupXYZ  
+Jun 2019 - Dec 2021
+• Built responsive web applications using React and Redux
+• Collaborated with design team to implement pixel-perfect UIs
+• Reduced bug reports by 30% through comprehensive testing
+
+EDUCATION
+
+Bachelor of Computer Science - University of California
+Sep 2015 - May 2019
+GPA: 3.8/4.0
+
+SKILLS
+JavaScript, TypeScript, React, Node.js, Python, PostgreSQL, MongoDB, AWS, Docker, Git
+
+PROJECTS
+
+E-commerce Platform
+• Built full-stack application with React frontend and Node.js backend
+• Integrated Stripe payment processing and user authentication
+• Technologies: React, Node.js, PostgreSQL, Stripe API
