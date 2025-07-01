@@ -536,7 +536,8 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
               </CardHeader>
               <CardContent>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid grid-cols-3 lg:grid-cols-6 mb-6">
+                  <TabsList className="grid grid-cols-4 lg:grid-cols-7 mb-6">
+                    <TabsTrigger value="setup">Setup</TabsTrigger>
                     <TabsTrigger value="personal">Personal</TabsTrigger>
                     <TabsTrigger value="summary">Summary</TabsTrigger>
                     <TabsTrigger value="experience">Experience</TabsTrigger>
@@ -544,6 +545,147 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
                     <TabsTrigger value="skills">Skills</TabsTrigger>
                     <TabsTrigger value="projects">Projects</TabsTrigger>
                   </TabsList>
+
+                  <TabsContent value="setup" className="space-y-6">
+                    <div className="space-y-6">
+                      {/* File Upload Section */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center">
+                            <Upload className="h-5 w-5 mr-2" />
+                            Upload Existing Resume
+                          </CardTitle>
+                          <p className="text-sm text-gray-600">
+                            Upload your current resume (PDF or Word document, up to 50MB) to automatically populate your information.
+                          </p>
+                        </CardHeader>
+                        <CardContent>
+                          <div 
+                            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
+                            onClick={() => document.getElementById('file-upload')?.click()}
+                          >
+                            <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                            <p className="text-lg font-medium text-gray-900 mb-2">
+                              {uploadedFile ? uploadedFile.name : "Click to upload or drag and drop"}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              PDF, DOC, DOCX files up to 50MB
+                            </p>
+                            <input
+                              id="file-upload"
+                              type="file"
+                              accept=".pdf,.doc,.docx"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleFileUpload(file);
+                              }}
+                            />
+                          </div>
+                          {isUploading && (
+                            <div className="mt-4 flex items-center justify-center">
+                              <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                              <span>Parsing your resume...</span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      {/* Job Analysis Section */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center">
+                            <Target className="h-5 w-5 mr-2" />
+                            Job-Targeted Optimization
+                          </CardTitle>
+                          <p className="text-sm text-gray-600">
+                            Paste a job description to get AI-powered suggestions for optimizing your resume.
+                          </p>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div>
+                            <Label htmlFor="job-description">Job Description</Label>
+                            <Textarea
+                              id="job-description"
+                              placeholder="Paste the job description here..."
+                              value={jobDescription}
+                              onChange={(e) => setJobDescription(e.target.value)}
+                              rows={6}
+                            />
+                          </div>
+                          <Button 
+                            onClick={handleJobAnalysis}
+                            disabled={isAnalyzing || !jobDescription.trim()}
+                            className="w-full"
+                          >
+                            {isAnalyzing ? (
+                              <>
+                                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                Analyzing...
+                              </>
+                            ) : (
+                              <>
+                                <Zap className="h-4 w-4 mr-2" />
+                                Analyze & Get Suggestions
+                              </>
+                            )}
+                          </Button>
+                          
+                          {jobAnalysis && (
+                            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                              <h4 className="font-medium text-blue-900 mb-2">AI Analysis Results</h4>
+                              <div className="space-y-2 text-sm text-blue-800">
+                                {jobAnalysis.matchPercentage && (
+                                  <p>Match Score: <strong>{jobAnalysis.matchPercentage}%</strong></p>
+                                )}
+                                {jobAnalysis.missingSkills && jobAnalysis.missingSkills.length > 0 && (
+                                  <div>
+                                    <p className="font-medium">Missing Skills:</p>
+                                    <ul className="list-disc list-inside ml-2">
+                                      {jobAnalysis.missingSkills.map((skill: string, index: number) => (
+                                        <li key={index}>{skill}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                {jobAnalysis.suggestions && jobAnalysis.suggestions.length > 0 && (
+                                  <div>
+                                    <p className="font-medium">Optimization Suggestions:</p>
+                                    <ul className="list-disc list-inside ml-2">
+                                      {jobAnalysis.suggestions.map((suggestion: string, index: number) => (
+                                        <li key={index}>{suggestion}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      {/* Quick Start Actions */}
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <Button 
+                          onClick={() => setActiveTab("personal")}
+                          className="flex-1"
+                          variant="outline"
+                        >
+                          <User className="h-4 w-4 mr-2" />
+                          Start Building Manually
+                        </Button>
+                        {(uploadedFile || jobAnalysis) && (
+                          <Button 
+                            onClick={() => setActiveTab("summary")}
+                            className="flex-1"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Continue Editing
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </TabsContent>
 
                   <TabsContent value="personal" className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
