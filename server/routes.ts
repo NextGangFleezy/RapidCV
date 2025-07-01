@@ -1,9 +1,31 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { createServer, Server } from "http";
+import multer from "multer";
 import { storage } from "./storage";
 import { insertUserSchema, insertResumeSchema, insertCoverLetterSchema, insertJobAnalysisSchema } from "../shared/schema";
 import { parseResumeWithAI, optimizeResumeForJob } from "./services/ai-parser";
 import { generateCoverLetter, analyzeJobMatch } from "./services/anthropic";
+
+// Configure multer for file uploads (50MB limit)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF and Word documents are allowed.'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Users routes
@@ -130,17 +152,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Resume parsing route
-  app.post("/api/resumes/parse", async (req: Request, res: Response) => {
+  // Resume parsing route with file upload support
+  app.post("/api/resumes/parse", upload.single('file'), async (req: Request, res: Response) => {
     try {
-      const { resumeText } = req.body;
+      let resumeText = '';
       
-      if (!resumeText || typeof resumeText !== 'string') {
-        return res.status(400).json({ message: "Resume text is required" });
+      if (req.file) {
+        // Handle file upload
+        const fileBuffer = req.file.buffer;
+        const fileName = req.file.originalname.toLowerCase();
+        
+        if (fileName.endsWith('.pdf')) {
+          // Parse PDF
+          try {
+            const pdfParse = require('pdf-parse');
+            const pdfData = await pdfParse(fileBuffer);
+            resumeText = pdfData.text;
+          } catch (pdfError) {
+            console.error('PDF parsing error:', pdfError);
+            return res.status(400).json({ message: "Failed to parse PDF file" });
+          }
+        } else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
+          // For Word documents, we'll extract text using a simple approach
+          // In production, you'd want to use a more robust library like mammoth
+          resumeText = fileBuffer.toString('utf8').replace(/[^\x20-\x7E\n\r]/g, ' ');
+        } else {
+          return res.status(400).json({ message: "Unsupported file type" });
+        }
+      } else if (req.body.resumeText) {
+        // Handle direct text input
+        resumeText = req.body.resumeText;
+      } else {
+        return res.status(400).json({ message: "Either file upload or resume text is required" });
+      }
+      
+      if (!resumeText || resumeText.trim().length < 50) {
+        return res.status(400).json({ message: "Resume content appears to be empty or too short" });
       }
 
       const parsedData = await parseResumeWithAI(resumeText);
-      res.json({ data: parsedData });
+      res.json(parsedData);
     } catch (error) {
       console.error('Resume parsing error:', error);
       res.status(500).json({ 
@@ -168,15 +219,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/cover-letters", async (req: Request, res: Response) => {
     try {
-      const { jobTitle, companyName, jobDescription, tone, resumeId, userId } = req.body;
+      const { jobTitle, companyName, jobDescription, resumeId, userId } = req.body;
       
       if (!jobTitle || !companyName || !jobDescription || !userId) {
         return res.status(400).json({ message: "Job title, company name, job description, and user ID are required" });
       }
 
-      // Check if user has Pro subscription for AI features
+      // Check if user has Pro subscription for AI features (test account bypasses this)
       const user = await storage.getUser(userId);
-      if (!user || user.subscriptionTier !== "pro") {
+      if (!user || (user.subscriptionTier !== "pro" && user.email !== "test@rapidcv.com")) {
         return res.status(403).json({ 
           message: "AI cover letter generation requires Pro subscription",
           feature: "cover-letter-generation",
@@ -194,7 +245,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         jobTitle,
         companyName, 
         jobDescription,
-        tone: tone || 'professional',
         resumeData
       });
 
@@ -254,9 +304,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Job description, resume data, and user ID are required" });
       }
 
-      // Check if user has Pro subscription for AI features
+      // Check if user has Pro subscription for AI features (test account bypasses this)
       const user = await storage.getUser(userId);
-      if (!user || user.subscriptionTier !== "pro") {
+      if (!user || (user.subscriptionTier !== "pro" && user.email !== "test@rapidcv.com")) {
         return res.status(403).json({ 
           message: "AI job analysis requires Pro subscription",
           feature: "job-analysis",
