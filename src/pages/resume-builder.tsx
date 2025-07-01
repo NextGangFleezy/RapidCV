@@ -355,9 +355,13 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
       // Force preview update and tab change after state update
       setPreviewKey(prev => prev + 1);
       setTimeout(() => {
+        console.log("🔄 Switching to personal tab after data update");
         setActiveTab("personal");
-        setResumeText(""); // Clear the text area
-      }, 100);
+        setPreviewKey(prev => prev + 1); // Force another preview refresh
+        setTimeout(() => {
+          setResumeText(""); // Clear the text area after tab switch
+        }, 50);
+      }, 200);
     } catch (error) {
       console.error('Parsing error:', error);
       toast({
@@ -645,7 +649,7 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
                             Upload Resume File
                           </CardTitle>
                           <p className="text-sm text-gray-600">
-                            Upload your resume (PDF or Word document) for AI-powered parsing and optimization.
+                            Upload your resume (Word document recommended) for AI-powered parsing. For PDFs, copy/paste text below instead.
                           </p>
                         </CardHeader>
                         <CardContent>
@@ -1255,7 +1259,7 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
                 <div key={previewKey} className="bg-white border rounded-lg p-8 shadow-sm min-h-[800px] max-h-[1000px] overflow-y-auto">
                   {/* Debug info at top */}
                   <div className="text-xs text-gray-400 mb-2 p-2 bg-gray-50 rounded">
-                    Debug: {resumeData.personalInfo.firstName || '[no firstName]'} | {resumeData.personalInfo.email || '[no email]'} | Key: {previewKey}
+                    Debug: Name: {resumeData.personalInfo.firstName || '[empty]'} {resumeData.personalInfo.lastName || '[empty]'} | Email: {resumeData.personalInfo.email || '[empty]'} | Experience: {resumeData.experience?.length || 0} | Skills: {resumeData.skills?.length || 0} | Summary: {resumeData.summary ? resumeData.summary.substring(0, 30) + '...' : '[empty]'} | PreviewKey: {previewKey}
                   </div>
                   
                   {/* Header */}

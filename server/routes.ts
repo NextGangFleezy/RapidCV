@@ -165,55 +165,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Processing file: ${fileName}, size: ${fileBuffer.length} bytes`);
         
         if (fileName.endsWith('.pdf')) {
-          // For PDF files, extract text with strict filtering
-          try {
-            const rawText = fileBuffer.toString('utf8');
-            
-            // Extract only readable text using multiple strategies
-            let cleanText = '';
-            
-            // Strategy 1: Extract text between PDF text markers
-            const textMatches = rawText.match(/\(([^)]+)\)/g);
-            if (textMatches && textMatches.length > 0) {
-              cleanText = textMatches
-                .map(match => match.slice(1, -1))
-                .filter(text => text.length > 2 && /[a-zA-Z]/.test(text)) // Must contain letters
-                .join(' ')
-                .replace(/\\[a-z]/g, '') // Remove PDF escape sequences
-                .replace(/[^\x20-\x7E\n\r]/g, ' ') // Only printable ASCII
-                .replace(/\s+/g, ' ')
-                .trim();
-            }
-            
-            // Strategy 2: Extract readable words if first strategy fails
-            if (!cleanText || cleanText.length < 50) {
-              const words = rawText
-                .replace(/[^\x20-\x7E\n\r]/g, ' ')
-                .split(/\s+/)
-                .filter(word => word.length > 2 && /^[a-zA-Z0-9@.-]+$/.test(word))
-                .slice(0, 1000); // Limit to first 1000 valid words
-              
-              cleanText = words.join(' ');
-            }
-            
-            // Enforce length limits to prevent token overflow
-            if (cleanText.length > 10000) {
-              cleanText = cleanText.substring(0, 10000) + '...';
-            }
-            
-            resumeText = cleanText;
-            console.log(`PDF text extraction completed, ${resumeText.length} characters extracted`);
-            
-            if (!resumeText || resumeText.length < 20) {
-              throw new Error('Could not extract readable text from PDF');
-            }
-          } catch (pdfError) {
-            console.error('PDF processing error:', pdfError);
-            return res.status(400).json({ 
-              message: "Failed to extract text from PDF. Please try copying the text manually and using the text input option.",
-              error: pdfError instanceof Error ? pdfError.message : 'PDF processing error'
-            });
-          }
+          // For PDF files, return instructive error since proper PDF parsing requires specialized libraries
+          return res.status(400).json({ 
+            message: "PDF upload detected. For best results, please copy the text from your PDF and paste it in the text input area below instead of uploading the file.",
+            error: 'PDF text extraction not supported'
+          });
         } else if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
           // For Word documents, we'll extract text using a simple approach
           // In production, you'd want to use a more robust library like mammoth
