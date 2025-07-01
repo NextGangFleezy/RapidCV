@@ -123,7 +123,7 @@ export default function ResumeBuilder({ user }: ResumeBuilderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [showJobAnalyzer, setShowJobAnalyzer] = useState(false);
   const [resumeText, setResumeText] = useState("");
-  const [previewKey, setPreviewKey] = useState(0);
+  const [previewKey, setPreviewKey] = useState(Date.now());
 
   // Fetch existing resume if editing
   const { data: existingResume, isLoading } = useQuery<any>({

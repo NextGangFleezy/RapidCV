@@ -165,32 +165,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Processing file: ${fileName}, size: ${fileBuffer.length} bytes`);
         
         if (fileName.endsWith('.pdf')) {
-          // Use pdf-parse library for proper PDF text extraction
+          // Direct PDF text extraction approach
           try {
             console.log('📄 Starting PDF text extraction...');
-            const pdfParse = require('pdf-parse');
-            const pdfData = await pdfParse(fileBuffer);
-            resumeText = pdfData.text;
+            
+            // Convert buffer to string and extract readable text patterns
+            const pdfString = fileBuffer.toString('binary');
+            
+            // Extract text between PDF text operators
+            const textBlocks: string[] = [];
+            
+            // Match patterns like (text) and [text]
+            const textMatches = pdfString.match(/\(([^)]+)\)/g);
+            if (textMatches) {
+              for (const match of textMatches) {
+                const text = match.slice(1, -1)
+                  .replace(/\\[nrt]/g, ' ')
+                  .replace(/\\[0-9]{3}/g, ' ')
+                  .trim();
+                if (text.length > 1 && /[a-zA-Z]/.test(text)) {
+                  textBlocks.push(text);
+                }
+              }
+            }
+            
+            // Also try bracket notation
+            const bracketMatches = pdfString.match(/\[([^\]]+)\]/g);
+            if (bracketMatches) {
+              for (const match of bracketMatches) {
+                const text = match.slice(1, -1).trim();
+                if (text.length > 1 && /[a-zA-Z]/.test(text)) {
+                  textBlocks.push(text);
+                }
+              }
+            }
+            
+            resumeText = textBlocks.join(' ')
+              .replace(/\s+/g, ' ')
+              .trim();
             
             console.log(`📄 PDF text extraction completed, ${resumeText.length} characters extracted`);
             console.log(`📄 First 200 chars: ${resumeText.substring(0, 200)}`);
             
-            if (!resumeText || resumeText.trim().length < 20) {
-              throw new Error('Could not extract readable text from PDF - text too short');
+            if (!resumeText || resumeText.trim().length < 50) {
+              throw new Error('Could not extract sufficient readable text from PDF - may be scanned or image-based');
             }
-            
-            // Clean up the text for better AI parsing
-            resumeText = resumeText
-              .replace(/\s+/g, ' ')
-              .replace(/[^\x20-\x7E\n\r]/g, ' ')
-              .trim();
-              
-            console.log(`📄 Cleaned text length: ${resumeText.length} characters`);
             
           } catch (pdfError) {
             console.error('📄 PDF processing error:', pdfError);
             return res.status(400).json({ 
-              message: "Failed to extract text from PDF. The file may be password-protected, scanned, or corrupted. Please try copying the text manually.",
+              message: "Could not extract text from this PDF. It may be scanned, image-based, or password-protected. Please copy the text manually and use the text input option.",
               error: pdfError instanceof Error ? pdfError.message : 'PDF processing error'
             });
           }
