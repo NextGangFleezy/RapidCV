@@ -89,6 +89,34 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
         ? await signUpWithEmail(email, password)
         : await signInWithEmail(email, password);
       
+      // If this is a new sign-up, create user in backend
+      if (isSignUp) {
+        try {
+          console.log('📝 Creating user in backend system...');
+          const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              firebaseUid: user.uid,
+              email: user.email,
+              firstName: user.email?.split('@')[0] || 'User',
+              lastName: '',
+            }),
+          });
+          
+          if (response.ok) {
+            console.log('✅ User created in backend successfully');
+          } else {
+            console.log('ℹ️ User may already exist in backend');
+          }
+        } catch (backendError) {
+          console.log('⚠️ Backend user creation failed, but Firebase account created:', backendError);
+          // Don't fail the whole process if backend creation fails
+        }
+      }
+      
       onSignIn(user);
       onOpenChange(false);
       
@@ -266,7 +294,11 @@ export default function AuthDialog({ open, onOpenChange, onSignIn }: AuthDialogP
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={isLoading}
+                  className={confirmPassword && password !== confirmPassword ? "border-red-500" : ""}
                 />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-sm text-red-500">Passwords don't match</p>
+                )}
               </div>
               
               <Button 
